@@ -3,7 +3,7 @@
 > 📘 **A supplementary dataset and toolset for the research on satellite cross-calibration and temporal interpolation.**  
 > 📘 **卫星交叉定标与时间插值研究的补充数据与工具集。**
 
-本项目为论文的**补充材料（Supplementary Material）**，包含再定标结果与插值代码，  
+本项目为论文(Spectral-Fidelity-Preserving Recalibration of Reflective Solar Bands for MERSI-II onboard Fengyun-3D Satellite)的**补充材料（Supplementary Material）**，包含再定标结果与插值代码，  
 并将根据研究进展 **持续更新** 数据与方法。
 
 ---
@@ -80,7 +80,7 @@ Author(s), “Title,” Journal, Year.
 作者, “论文题目,” 期刊名称, 年份。
 
 🤝 Contact | 联系方式
-Author / 作者： Min MIn， Qiang Yu
+Author / 作者： Min Min， Qiang Yu
 
 Email / 邮箱： [minm5@mail.sysu.edu.cn，yuqiang6@mail2.sysu.edu.cn]
 
