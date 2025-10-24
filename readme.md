@@ -1,4 +1,4 @@
-# 🌏 MERSI Recalibration Project | MERSI再定标项目
+# 🌏 MERSI-II Recalibration Project | MERSI-II再定标项目
 
 > 📘 **A supplementary dataset and toolset for the research on satellite cross-calibration and temporal interpolation.**  
 > 📘 **卫星交叉定标与时间插值研究的补充数据与工具集。**
@@ -16,7 +16,6 @@
     - RAD_202501.h5
   - 201802/
     - ...
--
 - 📁 GPR_interpolation/ # 插值算法与分析代码
   - main_control.py
   - data_preprocess.py
