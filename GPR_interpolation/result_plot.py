@@ -1,221 +1,167 @@
 # -*- coding: utf-8 -*-
-"""
-程序3：结果可视化
-"""
+"""Diagnostic plotting for the GP interpolation pipeline."""
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from datetime import datetime
-import logging
+from __future__ import annotations
+
 import argparse
-import os
 import glob
+import logging
+import os
 import traceback
 
-# 配置日志
+import matplotlib
+n = matplotlib.use("Agg")
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+import pandas as pd
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 BAND_WAVELENGTHS = {
-    1: "0.47 µm",
-    2: "0.55 µm",
-    3: "0.65 µm",
-    4: "0.865 µm",
-    5: "1.38 µm",
-    6: "1.64 µm",
-    7: "2.13 µm"
+    1: "412 nm",
+    2: "443 nm",
+    3: "490 nm",
+    4: "555 nm",
+    5: "660 nm",
+    6: "680 nm",
+    7: "745 nm",
 }
 
-def plot_results(data_dir, result_dir, output_dir):
-    """可视化插值结果 - 四张图片，每张包含7个子图"""
-    os.makedirs(output_dir, exist_ok=True)
 
-    logging.info(f"数据目录: {data_dir}")
-    logging.info(f"结果目录: {result_dir}")
-    logging.info(f"输出目录: {output_dir}")
-
-    # 检查目录是否存在
-    if not os.path.exists(data_dir):
-        logging.error(f"数据目录不存在: {data_dir}")
-        return
-
-    if not os.path.exists(result_dir):
-        logging.error(f"结果目录不存在: {result_dir}")
-        return
-
-    # 查找所有插值结果文件
-    result_files = glob.glob(os.path.join(result_dir, 'interp_ch*_*.csv'))
-    logging.info(f"找到 {len(result_files)} 个插值结果文件")
-
-    if not result_files:
-        logging.warning("没有找到任何插值结果文件")
-        return
-
-    # 加载预处理数据
-    data_file = os.path.join(data_dir, 'preprocessed_data.csv')
-    if not os.path.exists(data_file):
-        logging.error(f"预处理数据文件不存在: {data_file}")
-        return
-
-    try:
-        data_df = pd.read_csv(data_file)
-        data_df['date'] = pd.to_datetime(data_df['date'])
-        logging.info(f"成功加载预处理数据，形状: {data_df.shape}")
-    except Exception as e:
-        logging.error(f"加载预处理数据失败: {str(e)}")
-        return
-
-    # 定义要处理的参数组合
-    cal_types = ['RAD', 'REF']
-    params = ['Slope', 'Intercept']
-    channels = range(1, 8)  # 7个通道
-
-    # 设置绘图样式
-    plt.style.use('seaborn-whitegrid')
+def configure_style() -> None:
     plt.rcParams.update({
-        'font.family': 'serif',
-        'font.size': 10,
-        'axes.labelsize': 12,
-        'axes.titlesize': 14,
-        'figure.dpi': 500,
-        'figure.figsize': (14, 20),
+        "font.family": "serif",
+        "font.size": 9,
+        "axes.labelsize": 9,
+        "axes.titlesize": 10,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "figure.dpi": 150,
+        "savefig.dpi": 300,
+        "legend.frameon": False,
     })
 
-    processed_count = 0
-    error_count = 0
 
-    # 为每种校准类型和参数组合创建图表
-    for cal_type in cal_types:
-        for param in params:
+def date_axis(ax: plt.Axes) -> None:
+    ax.xaxis.set_major_locator(mdates.MonthLocator(interval=4))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+
+
+def load_cv(result_dir: str) -> pd.DataFrame:
+    path = os.path.join(result_dir, "cross_validation_results.csv")
+    return pd.read_csv(path) if os.path.exists(path) else pd.DataFrame()
+
+
+def load_manifest(result_dir: str) -> pd.DataFrame:
+    path = os.path.join(result_dir, "interpolation_manifest.csv")
+    return pd.read_csv(path) if os.path.exists(path) else pd.DataFrame()
+
+
+def cv_text(cv_df: pd.DataFrame, channel: int, cal_type: str, parameter: str) -> str:
+    if cv_df.empty:
+        return ""
+    key = f"ch{channel}_{cal_type}_{parameter}"
+    sub = cv_df[cv_df["series"] == key]
+    if sub.empty:
+        return ""
+    return f"CV MAE={sub['MAE'].mean():.4f}  RMSE={sub['RMSE'].mean():.4f}"
+
+
+def mode_text(manifest_df: pd.DataFrame, channel: int, cal_type: str, parameter: str) -> str:
+    if manifest_df.empty:
+        return ""
+    key = f"ch{channel}_{cal_type}_{parameter}"
+    sub = manifest_df[manifest_df["series"] == key]
+    if sub.empty:
+        return ""
+    row = sub.iloc[0]
+    return f"train={row['train_mode']} | obs={int(row['n_observed_rows'])} | syn={int(row['n_synthetic_rows'])}"
+
+
+def plot_results(data_dir: str, result_dir: str, output_dir: str) -> None:
+    os.makedirs(output_dir, exist_ok=True)
+    configure_style()
+
+    obs_path = os.path.join(data_dir, "preprocessed_data.csv")
+    if not os.path.exists(obs_path):
+        raise FileNotFoundError(f"Missing {obs_path}")
+
+    obs_df = pd.read_csv(obs_path)
+    obs_df["date"] = pd.to_datetime(obs_df["date"])
+    if "is_synthetic" not in obs_df.columns:
+        obs_df["is_synthetic"] = False
+
+    cv_df = load_cv(result_dir)
+    manifest_df = load_manifest(result_dir)
+
+    for cal_type in ["RAD", "REF"]:
+        for parameter in ["Intercept", "Slope"]:
             try:
-                # 创建2列4行的子图布局（共8个位置，使用7个）
-                fig, axes = plt.subplots(7, 1, figsize=(10, 16))
-                axes = axes.flatten()  # 将二维数组展平为一维
-
-                # 为每个通道创建子图
-                for i, channel in enumerate(channels):
+                fig, axes = plt.subplots(7, 1, figsize=(11, 18), sharex=False)
+                for i, ch in enumerate(range(1, 8)):
                     ax = axes[i]
-
-                    # 查找对应的结果文件
-                    result_pattern = os.path.join(result_dir, f'interp_ch{channel}_{cal_type}_{param}.csv')
-                    result_files = glob.glob(result_pattern)
-
-                    if not result_files:
-                        logging.warning(f"未找到结果文件: {result_pattern}")
-                        ax.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax.transAxes)
-                        ax.set_title(f'Channel {channel}', fontsize=12)
+                    interp_path = os.path.join(result_dir, f"interp_ch{ch}_{cal_type}_{parameter}.csv")
+                    if not os.path.exists(interp_path):
+                        ax.text(0.5, 0.5, "No interpolation result", transform=ax.transAxes, ha="center", va="center")
                         continue
 
-                    result_file = result_files[0]
+                    gp_df = pd.read_csv(interp_path)
+                    gp_df["date"] = pd.to_datetime(gp_df["date"])
+                    sub = obs_df[(obs_df["channel"] == ch) & (obs_df["type"] == cal_type) & (obs_df["parameter"] == parameter)].copy()
+                    real_obs = sub[sub["is_synthetic"] == False]
+                    syn_obs = sub[sub["is_synthetic"] == True]
 
-                    # 加载插值结果
-                    interp_df = pd.read_csv(result_file)
-                    if 'date' not in interp_df.columns:
-                        logging.warning(f"文件 {result_file} 缺少日期列")
-                        continue
+                    if "std" in gp_df.columns:
+                        ax.fill_between(gp_df["date"], gp_df["value"] - 1.96 * gp_df["std"], gp_df["value"] + 1.96 * gp_df["std"], alpha=0.25, linewidth=0)
+                    ax.plot(gp_df["date"], gp_df["value"], linewidth=1.8)
+                    if not real_obs.empty:
+                        ax.scatter(real_obs["date"], real_obs["value"], s=22, marker="o", edgecolors="white", linewidths=0.5, zorder=5)
+                    if not syn_obs.empty:
+                        ax.scatter(syn_obs["date"], syn_obs["value"], s=18, marker="^", alpha=0.8, edgecolors="white", linewidths=0.5, zorder=4)
 
-                    interp_df['date'] = pd.to_datetime(interp_df['date'])
-
-                    # 筛选对应通道和类型的数据
-                    channel_data = data_df[
-                        (data_df['channel'] == int(channel)) &
-                        (data_df['type'] == cal_type) &
-                        (data_df['parameter'] == param)
-                        ]
-
-                    if channel_data.empty:
-                        logging.warning(f"没有找到对应的原始数据: 通道 {channel}, 类型 {cal_type}, 参数 {param}")
-                        ax.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax.transAxes)
-                        ax.set_title(f'Channel {channel}', fontsize=12)
-                        continue
-
-                    # 绘制原始数据点
-                    ax.scatter(
-                        channel_data['date'], channel_data['value'],
-                        c='#4C72B0', marker='o', s=40,
-                        edgecolors='white', linewidth=1.0,
-                        zorder=10
-                    )
-
-                    # 标记增强的数据点
-                    if 'is_augmented' in channel_data.columns:
-                        augmented_data = channel_data[channel_data['is_augmented']]
-                        if not augmented_data.empty:
-                            ax.scatter(
-                                augmented_data['date'], augmented_data['value'],
-                                c='#2ca02c', marker='^', s=40,
-                                edgecolors='white', linewidth=0.8, alpha=0.8,
-                                zorder=9
-                            )
-
-                    # 绘制插值曲线
-                    ax.plot(
-                        interp_df['date'].to_numpy(),
-                        interp_df['value'].to_numpy(),
-                        color='#C44E52', linewidth=2.0, alpha=0.95
-                    )
-
-                    # 添加不确定性区间
-                    if 'std' in interp_df.columns:
-                        ax.fill_between(
-                            interp_df['date'],
-                            interp_df['value'] - 2 * interp_df['std'],
-                            interp_df['value'] + 2 * interp_df['std'],
-                            alpha=0.25, color='lightgrey', label='95% CI'
-                        )
-
-                    # 设置子图属性
-                    ax.text(0.5, 0.97, f'B{i + 1:02d} ({BAND_WAVELENGTHS[i + 1]})',
-                            transform=ax.transAxes,
-                            fontsize=14, fontweight='bold',
-                            horizontalalignment='center', verticalalignment='top'
-                            )
-                    #ax.set_title(f'B{i+1:02d}({BAND_WAVELENGTHS[i+1]})', fontsize=20)
-
-                    # 设置日期格式
-                    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%-m'))
-                    ax.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
-
+                    ax.text(0.02, 0.96, f"B{i+1:02d} ({BAND_WAVELENGTHS[i+1]})", transform=ax.transAxes, va="top", ha="left", fontweight="bold")
+                    txt = cv_text(cv_df, ch, cal_type, parameter)
+                    if txt:
+                        ax.text(0.98, 0.96, txt, transform=ax.transAxes, va="top", ha="right", fontsize=7.5)
+                    txt2 = mode_text(manifest_df, ch, cal_type, parameter)
+                    if txt2:
+                        ax.text(0.98, 0.86, txt2, transform=ax.transAxes, va="top", ha="right", fontsize=7.2)
+                    ax.set_ylabel(parameter)
+                    date_axis(ax)
                     if i < 6:
                         ax.set_xticklabels([])
                     else:
-                        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+                        plt.setp(ax.get_xticklabels(), rotation=30, ha="right")
 
-                # 调整布局
-                plt.tight_layout(rect=[0, 0, 1, 1])
-
-                # 保存图表
-                output_file = os.path.join(output_dir, f"{cal_type}_{param}_interpolation.png")
-                plt.savefig(output_file, bbox_inches='tight', dpi=500)
+                legend_items = [
+                    Line2D([0], [0], marker="o", color="w", markerfacecolor="C0", markersize=6, label="Observed (used for main training)"),
+                    Line2D([0], [0], marker="^", color="w", markerfacecolor="C1", markersize=6, label="Synthetic / regularised"),
+                    Line2D([0], [0], color="C2", linewidth=2, label="GP posterior mean"),
+                    plt.Rectangle((0, 0), 1, 1, fc="C2", alpha=0.25, label="95% credible interval"),
+                ]
+                fig.legend(handles=legend_items, loc="lower center", ncol=4, bbox_to_anchor=(0.5, -0.01), fontsize=8)
+                fig.suptitle(f"{cal_type} — {parameter}", fontsize=12, fontweight="bold", y=1.0)
+                plt.tight_layout(rect=[0, 0.03, 1, 0.98])
+                out_path = os.path.join(output_dir, f"{cal_type}_{parameter}_interpolation.png")
+                fig.savefig(out_path, bbox_inches="tight")
                 plt.close(fig)
-
-                processed_count += 1
-                logging.info(f"已生成 {cal_type} {param} 的图表")
-
-            except Exception as e:
-                error_count += 1
-                logging.error(f"绘制 {cal_type} {param} 时出错: {str(e)}")
-                logging.error(traceback.format_exc())
-                continue
-
-    logging.info(f"可视化完成! 成功处理 {processed_count} 个图表，失败 {error_count} 个图表")
+                logging.info("Saved %s", out_path)
+            except Exception:
+                logging.error("Failed to plot %s %s:\n%s", cal_type, parameter, traceback.format_exc())
+                plt.close("all")
 
 
-def main():
-    parser = argparse.ArgumentParser(description='结果可视化')
-    parser.add_argument('--data_dir', required=True, help='预处理数据目录')
-    parser.add_argument('--result_dir', required=True, help='插值结果目录')
-    parser.add_argument('--output_dir', required=True, help='可视化输出目录')
-
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Plot GP interpolation diagnostics.")
+    parser.add_argument("--data_dir", required=True, help="Directory containing preprocessed_data.csv")
+    parser.add_argument("--result_dir", required=True, help="Directory containing interpolation CSV files")
+    parser.add_argument("--output_dir", required=True, help="Directory for output figures")
     args = parser.parse_args()
-
-    logging.info("开始结果可视化...")
     plot_results(args.data_dir, args.result_dir, args.output_dir)
-    logging.info("可视化完成!")
 
 
 if __name__ == "__main__":

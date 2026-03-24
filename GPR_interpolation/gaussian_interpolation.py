@@ -1,239 +1,255 @@
 # -*- coding: utf-8 -*-
 """
-程序2：高斯过程插值
+Module 2: Gaussian-process interpolation for calibration coefficients.
+
+Public-release safeguards:
+1. Use one consistent temporal reference per series.
+2. Default to training and evaluating on observed QC-passed points only.
+3. Preserve provenance of synthetic points for plotting and audit, but do not
+   include them in training unless explicitly requested.
 """
 
-import pandas as pd
-import numpy as np
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel, ExpSineSquared, RationalQuadratic
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import mean_absolute_error, mean_squared_error
-import logging
-import traceback
-import argparse
-from datetime import datetime, timedelta
-import os
-import h5py
-import json
+from __future__ import annotations
 
-# 配置日志
+import argparse
+import json
+import logging
+import os
+import traceback
+from dataclasses import asdict, dataclass
+from typing import Dict, List, Tuple
+
+import numpy as np
+import pandas as pd
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import (
+    ConstantKernel as C,
+    ExpSineSquared,
+    RBF,
+    RationalQuadratic,
+    WhiteKernel,
+)
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.preprocessing import StandardScaler
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+FEATURE_COLS = ["t_index", "sin_doy", "cos_doy", "sin_mon", "cos_mon"]
+MIN_TRAIN_POINTS = 6
+DEFAULT_PAD_DAYS = 15
 
-def enhanced_gaussian_process(X_train, y_train, X_pred):
-    """优化的高斯过程回归"""
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_pred_scaled = scaler.transform(X_pred)
 
-    kernel = (
-            C(1.0, (1e-3, 1e3)) *
-            RBF(length_scale=100.0, length_scale_bounds=(10.0, 1000.0)) +
-            C(0.5, (1e-2, 10)) *
-            ExpSineSquared(length_scale=1.0, periodicity=365.25, periodicity_bounds=(300, 400)) *
-            RBF(length_scale=10.0) +
-            RationalQuadratic(alpha=0.1, length_scale=1.0) +
-            WhiteKernel(noise_level=0.05, noise_level_bounds=(1e-5, 0.1))
-    )
+@dataclass
+class CVRecord:
+    series: str
+    fold: int
+    channel: int
+    cal_type: str
+    parameter: str
+    n_train: int
+    n_test: int
+    MAE: float
+    RMSE: float
+    train_mode: str
 
-    gp = GaussianProcessRegressor(
-        kernel=kernel,
-        n_restarts_optimizer=25,
-        alpha=0.02,
-        normalize_y=True,
-        random_state=42
-    )
 
-    try:
-        gp.fit(X_train_scaled, y_train)
-        y_pred, sigma = gp.predict(X_pred_scaled, return_std=True)
-        return y_pred, sigma, gp.kernel_
-    except Exception as e:
-        logging.error(f"高斯过程优化失败: {str(e)}")
-        simple_kernel = C(1.0, (1e-3, 1e3)) * RBF(length_scale=100.0, length_scale_bounds=(1, 1000))
-        gp = GaussianProcessRegressor(
-            kernel=simple_kernel,
-            n_restarts_optimizer=15,
-            alpha=0.05,
-            normalize_y=True,
-            random_state=42
+@dataclass
+class SeriesManifest:
+    series: str
+    channel: int
+    cal_type: str
+    parameter: str
+    n_total_rows: int
+    n_observed_rows: int
+    n_training_rows: int
+    n_synthetic_rows: int
+    train_mode: str
+    ref_date: str
+    start_date: str
+    end_date: str
+
+
+def build_kernel() -> object:
+    return (
+        C(1.0, (1e-3, 1e3))
+        * (
+            1.0 * RBF(length_scale=30.0, length_scale_bounds=(1.0, 1e3))
+            + 0.8 * ExpSineSquared(length_scale=10.0, periodicity=365.25, length_scale_bounds=(1.0, 1e3), periodicity_bounds=(300.0, 450.0))
+            + 0.5 * RationalQuadratic(length_scale=30.0, alpha=1.0, length_scale_bounds=(1.0, 1e3), alpha_bounds=(1e-3, 1e3))
         )
-        gp.fit(X_train_scaled, y_train)
-        y_pred, sigma = gp.predict(X_pred_scaled, return_std=True)
-        return y_pred, sigma, gp.kernel_
-
-
-def cross_validate(data, n_splits=5):
-    """执行时间序列交叉验证"""
-    if len(data) < 2:
-        return pd.DataFrame()
-
-    tscv = TimeSeriesSplit(n_splits=min(n_splits, len(data) - 1))
-    metrics = []
-    data = data.sort_values('date')
-
-    for fold, (train_index, test_index) in enumerate(tscv.split(data)):
-        train_data = data.iloc[train_index]
-        test_data = data.iloc[test_index]
-
-        X_train = train_data[['days_since_start', 'sin_day', 'cos_day', 'sin_month', 'cos_month']].values
-        y_train = train_data['value'].values
-        X_test = test_data[['days_since_start', 'sin_day', 'cos_day', 'sin_month', 'cos_month']].values
-        y_test = test_data['value'].values
-
-        try:
-            y_pred, _, _ = enhanced_gaussian_process(X_train, y_train, X_test)
-            mae = mean_absolute_error(y_test, y_pred)
-            rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-
-            metrics.append({
-                'fold': fold + 1,
-                'MAE': mae,
-                'RMSE': rmse,
-                'n_train': len(train_index),
-                'n_test': len(test_index)
-            })
-        except Exception as e:
-            logging.error(f"交叉验证出错: {str(e)}")
-
-    return pd.DataFrame(metrics)
-
-
-def save_daily_results(results, date, cal_type, output_dir):
-    """保存每日结果"""
-    os.makedirs(output_dir, exist_ok=True)
-
-    channels = sorted(results.keys())
-    coeff_matrix = []
-
-    for ch in channels:
-        coeff_matrix.append([
-            results[ch]['Intercept'],
-            results[ch]['Slope'],
-            0.0
-        ])
-
-    df = pd.DataFrame(
-        coeff_matrix,
-        index=[f"ch{str(i).zfill(2)}" for i in channels],
-        columns=['cal0', 'cal1', 'cal2']
+        + WhiteKernel(noise_level=1e-3, noise_level_bounds=(1e-8, 1.0))
     )
 
-    # 保存CSV
-    date_str = date.strftime('%Y%m%d')
-    csv_filename = f"{cal_type}_{date_str}.csv"
-    csv_path = os.path.join(output_dir, csv_filename)
-    df.to_csv(csv_path)
 
-    # 保存HDF
-    hdf_filename = f"{cal_type}_{date_str}.h5"
-    hdf_path = os.path.join(output_dir, hdf_filename)
-
-    with h5py.File(hdf_path, 'w') as f:
-        dset = f.create_dataset("calibration_coeff", data=df.values)
-        dset.attrs['date'] = date_str
-        dset.attrs['cal_type'] = cal_type
-        dset.attrs['channels'] = ','.join(df.index.tolist())
-        dset.attrs['columns'] = ','.join(df.columns.tolist())
+def prepare_features(df: pd.DataFrame, ref_date: pd.Timestamp) -> pd.DataFrame:
+    out = df.copy()
+    out["date"] = pd.to_datetime(out["date"])
+    out["month"] = out["date"].dt.month
+    out["doy"] = out["date"].dt.dayofyear
+    out["sin_doy"] = np.sin(2.0 * np.pi * out["doy"] / 365.25)
+    out["cos_doy"] = np.cos(2.0 * np.pi * out["doy"] / 365.25)
+    out["sin_mon"] = np.sin(2.0 * np.pi * out["month"] / 12.0)
+    out["cos_mon"] = np.cos(2.0 * np.pi * out["month"] / 12.0)
+    out["t_index"] = (out["date"] - ref_date).dt.days
+    return out
 
 
-def main():
-    parser = argparse.ArgumentParser(description='高斯过程插值')
-    parser.add_argument('--input_dir', required=True, help='预处理数据目录')
-    parser.add_argument('--output_dir', required=True, help='插值结果输出目录')
-    parser.add_argument('--daily_dir', required=True, help='每日结果输出目录')
+def build_prediction_grid(ref_date: pd.Timestamp, start_date: pd.Timestamp, end_date: pd.Timestamp, pad_days: int) -> pd.DataFrame:
+    grid_dates = pd.date_range(start=start_date - pd.Timedelta(days=pad_days), end=end_date + pd.Timedelta(days=pad_days), freq="D")
+    grid = pd.DataFrame({"date": grid_dates})
+    return prepare_features(grid, ref_date)
 
+
+def fit_gp(X: np.ndarray, y: np.ndarray) -> GaussianProcessRegressor:
+    gp = GaussianProcessRegressor(
+        kernel=build_kernel(),
+        normalize_y=True,
+        n_restarts_optimizer=5,
+        random_state=0,
+    )
+    gp.fit(X, y)
+    return gp
+
+
+def blocked_cross_validate(train_df: pd.DataFrame, channel: int, cal_type: str, parameter: str, train_mode: str) -> List[CVRecord]:
+    if len(train_df) < 2 * MIN_TRAIN_POINTS:
+        return []
+
+    n_splits = min(5, max(2, len(train_df) // MIN_TRAIN_POINTS))
+    tscv = TimeSeriesSplit(n_splits=n_splits)
+    X = train_df[FEATURE_COLS].to_numpy(dtype=float)
+    y = train_df["value"].to_numpy(dtype=float)
+
+    records: List[CVRecord] = []
+    for fold, (tr_idx, te_idx) in enumerate(tscv.split(X), start=1):
+        if len(tr_idx) < MIN_TRAIN_POINTS or len(te_idx) < 2:
+            continue
+        scaler = StandardScaler()
+        X_tr = scaler.fit_transform(X[tr_idx])
+        X_te = scaler.transform(X[te_idx])
+        gp = fit_gp(X_tr, y[tr_idx])
+        pred = gp.predict(X_te)
+        records.append(
+            CVRecord(
+                series=f"ch{channel}_{cal_type}_{parameter}",
+                fold=fold,
+                channel=channel,
+                cal_type=cal_type,
+                parameter=parameter,
+                n_train=len(tr_idx),
+                n_test=len(te_idx),
+                MAE=float(mean_absolute_error(y[te_idx], pred)),
+                RMSE=float(np.sqrt(mean_squared_error(y[te_idx], pred))),
+                train_mode=train_mode,
+            )
+        )
+    return records
+
+
+def save_kernel_summary(path: str, kernel_map: Dict[str, str]) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(kernel_map, f, indent=2, ensure_ascii=False)
+
+
+def interpolate_series(df: pd.DataFrame, output_dir: str, pad_days: int, include_synthetic_in_training: bool) -> None:
+    os.makedirs(output_dir, exist_ok=True)
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["date"])
+
+    if "used_for_training" not in df.columns:
+        df["used_for_training"] = ~df.get("is_synthetic", False)
+    if "is_synthetic" not in df.columns:
+        df["is_synthetic"] = False
+
+    cv_records: List[CVRecord] = []
+    manifests: List[SeriesManifest] = []
+    kernel_map: Dict[str, str] = {}
+
+    for (channel, cal_type, parameter), grp in df.groupby(["channel", "type", "parameter"]):
+        grp = grp.sort_values("date").reset_index(drop=True)
+        ref_date = pd.Timestamp(grp["date"].min())
+        grp = prepare_features(grp, ref_date)
+
+        observed = grp[(grp["is_synthetic"] == False) & (grp.get("is_outlier", False) == False)].copy()
+        if include_synthetic_in_training:
+            train_df = grp[(grp["used_for_training"] == True) | (grp["is_synthetic"] == True)].copy()
+            train_mode = "observed_plus_synthetic"
+        else:
+            train_df = grp[grp["used_for_training"] == True].copy()
+            train_mode = "observed_only"
+
+        if len(train_df) < MIN_TRAIN_POINTS:
+            logging.warning("Skipping ch%s %s %s: only %d eligible training rows", channel, cal_type, parameter, len(train_df))
+            continue
+
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(train_df[FEATURE_COLS].to_numpy(dtype=float))
+        y_train = train_df["value"].to_numpy(dtype=float)
+        gp = fit_gp(X_train, y_train)
+
+        pred_grid = build_prediction_grid(ref_date, grp["date"].min(), grp["date"].max(), pad_days)
+        X_pred = scaler.transform(pred_grid[FEATURE_COLS].to_numpy(dtype=float))
+        pred_mean, pred_std = gp.predict(X_pred, return_std=True)
+        pred_grid["value"] = pred_mean
+        pred_grid["std"] = pred_std
+        pred_grid["channel"] = channel
+        pred_grid["type"] = cal_type
+        pred_grid["parameter"] = parameter
+        pred_grid["train_mode"] = train_mode
+
+        out_csv = os.path.join(output_dir, f"interp_ch{channel}_{cal_type}_{parameter}.csv")
+        pred_grid[["date", "channel", "type", "parameter", "value", "std", "train_mode"]].to_csv(out_csv, index=False)
+
+        cv_records.extend(blocked_cross_validate(train_df.sort_values("date"), channel, cal_type, parameter, train_mode))
+        series_key = f"ch{channel}_{cal_type}_{parameter}"
+        kernel_map[series_key] = str(gp.kernel_)
+        manifests.append(
+            SeriesManifest(
+                series=series_key,
+                channel=int(channel),
+                cal_type=str(cal_type),
+                parameter=str(parameter),
+                n_total_rows=int(len(grp)),
+                n_observed_rows=int(len(observed)),
+                n_training_rows=int(len(train_df)),
+                n_synthetic_rows=int((grp["is_synthetic"] == True).sum()),
+                train_mode=train_mode,
+                ref_date=ref_date.strftime("%Y-%m-%d"),
+                start_date=pd.Timestamp(grp["date"].min()).strftime("%Y-%m-%d"),
+                end_date=pd.Timestamp(grp["date"].max()).strftime("%Y-%m-%d"),
+            )
+        )
+        logging.info("Saved interpolation for ch%s %s %s (%s)", channel, cal_type, parameter, train_mode)
+
+    cv_df = pd.DataFrame([asdict(r) for r in cv_records])
+    cv_df.to_csv(os.path.join(output_dir, "cross_validation_results.csv"), index=False)
+    pd.DataFrame([asdict(m) for m in manifests]).to_csv(os.path.join(output_dir, "interpolation_manifest.csv"), index=False)
+    save_kernel_summary(os.path.join(output_dir, "kernel_hyperparameters.json"), kernel_map)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Gaussian-process interpolation for calibration coefficients.")
+    parser.add_argument("--input_csv", required=True, help="Path to preprocessed_data.csv")
+    parser.add_argument("--output_dir", required=True, help="Directory for interpolation outputs")
+    parser.add_argument("--pad_days", type=int, default=DEFAULT_PAD_DAYS, help="Padding days on each boundary for interpolation grid")
+    parser.add_argument("--include_synthetic_in_training", action="store_true", help="Explicitly include synthetic rows in GP training and CV")
     args = parser.parse_args()
 
-    logging.info("开始高斯过程插值...")
-
-    # 加载预处理数据
-    input_file = os.path.join(args.input_dir, 'preprocessed_data.csv')
-    if not os.path.exists(input_file):
-        logging.error(f"预处理数据文件不存在: {input_file}")
-        return
-
-    df = pd.read_csv(input_file)
-    df['date'] = pd.to_datetime(df['date'])
-
-    # 创建完整日期范围
-    min_date = df['date'].min() - timedelta(days=15)
-    max_date = df['date'].max() + timedelta(days=15)
-    full_dates = pd.date_range(start=min_date, end=max_date, freq='D')
-
-    # 对每个通道-类型-参数组合进行插值
-    groups = df.groupby(['channel', 'type', 'parameter'])
-    all_interp_results = {}
-    kernel_info = {}
-
-    for (channel, cal_type, param), group in groups:
-        logging.info(f"处理通道 {channel} - {cal_type} - {param}")
-
-        # 准备特征数据
-        feature_cols = ['days_since_start', 'sin_day', 'cos_day', 'sin_month', 'cos_month']
-        X_train = group[feature_cols].values
-        y_train = group['value'].values
-
-        # 准备完整预测数据
-        full_df = pd.DataFrame({'date': full_dates})
-        min_start_date = group['date'].min()
-        full_df['days_since_start'] = (full_df['date'] - min_start_date).dt.days
-        full_df['day_of_year'] = full_df['date'].dt.dayofyear
-        full_df['month'] = full_df['date'].dt.month
-        full_df['sin_day'] = np.sin(2 * np.pi * full_df['day_of_year'] / 365.25)
-        full_df['cos_day'] = np.cos(2 * np.pi * full_df['day_of_year'] / 365.25)
-        full_df['sin_month'] = np.sin(2 * np.pi * full_df['month'] / 12)
-        full_df['cos_month'] = np.cos(2 * np.pi * full_df['month'] / 12)
-
-        X_full = full_df[feature_cols].values
-
-        # 执行插值
-        try:
-            y_pred, sigma, kernel = enhanced_gaussian_process(X_train, y_train, X_full)
-            kernel_info[f"Channel{channel}_{cal_type}_{param}"] = str(kernel)
-
-            # 存储结果
-            for date, value in zip(full_dates, y_pred):
-                date_str = date.strftime('%Y-%m-%d')
-                if date_str not in all_interp_results:
-                    all_interp_results[date_str] = {}
-                if cal_type not in all_interp_results[date_str]:
-                    all_interp_results[date_str][cal_type] = {}
-                if channel not in all_interp_results[date_str][cal_type]:
-                    all_interp_results[date_str][cal_type][channel] = {}
-
-                all_interp_results[date_str][cal_type][channel][param] = value
-
-            # 保存单个参数结果
-            param_results = pd.DataFrame({
-                'date': full_dates,
-                'value': y_pred,
-                'std': sigma
-            })
-            param_file = os.path.join(args.output_dir, f'interp_ch{channel}_{cal_type}_{param}.csv')
-            param_results.to_csv(param_file, index=False)
-
-        except Exception as e:
-            logging.error(f"插值失败: {str(e)}")
-            logging.error(traceback.format_exc())
-
-    # 保存每日结果
-    for date_str, date_data in all_interp_results.items():
-        date = datetime.strptime(date_str, '%Y-%m-%d')
-        for cal_type, cal_data in date_data.items():
-            save_daily_results(cal_data, date, cal_type, args.daily_dir)
-
-    # 保存核信息
-    kernel_file = os.path.join(args.output_dir, 'kernel_info.json')
-    with open(kernel_file, 'w') as f:
-        json.dump(kernel_info, f, indent=2)
-
-    logging.info("高斯过程插值完成!")
+    try:
+        df = pd.read_csv(args.input_csv)
+        interpolate_series(
+            df=df,
+            output_dir=args.output_dir,
+            pad_days=args.pad_days,
+            include_synthetic_in_training=args.include_synthetic_in_training,
+        )
+    except Exception:
+        logging.error("Interpolation failed:\n%s", traceback.format_exc())
+        raise
 
 
 if __name__ == "__main__":

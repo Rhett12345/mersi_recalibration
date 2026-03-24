@@ -1,370 +1,422 @@
 # -*- coding: utf-8 -*-
 """
-程序1：数据预处理和增强
+Module 1: Data loading, quality control, and temporal regularisation.
+
+Design goals for the public release:
+1. Keep observed and synthetic points explicitly separated.
+2. Emit an audit trail for every QC and regularisation action.
+3. Use one consistent temporal reference per (channel, type, parameter) series.
 """
 
+from __future__ import annotations
+
+import argparse
+import logging
 import os
-import glob
 import re
+import traceback
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
-import logging
-import traceback
-import argparse
-from scipy.stats import zscore
-import matplotlib
+from scipy.stats import median_abs_deviation
 
-matplotlib.use('Agg')
-
-# 配置日志
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+FILE_RE = re.compile(
+    r"^CAL_(?P<sensor>.+?)_(?P<cal_type>REF|RAD)_ch01toch07_(?P<date>\d{8})\.csv$",
+    re.IGNORECASE,
+)
 
-def load_data(data_root):
-    """加载所有CSV文件到DataFrame"""
-    data = []
+TARGET_FREQ = "D"
+OUTLIER_THRESHOLD = 3.5
+MAX_FILL_GAP_DAYS = 30
+SPARSE_SERIES_THRESHOLD = 20
+MIN_POINTS_FOR_NEIGHBOUR_SUB = 2
 
-    if not os.path.exists(data_root):
-        logging.error(f"数据根目录不存在: {data_root}")
-        return pd.DataFrame()
 
-    # 使用递归查找所有匹配的文件
-    file_list = []
-    for root, dirs, files in os.walk(data_root):
-        for file in files:
-            # 更灵活的文件名匹配
-            if (file.startswith('CAL_') or file.startswith('cal_')) and \
-                    ('ch01toch07' in file.lower()) and \
-                    file.endswith('.csv'):
-                file_path = os.path.join(root, file)
-                file_list.append(file_path)
+@dataclass
+class AuditEvent:
+    channel: int
+    cal_type: str
+    parameter: str
+    date: str
+    event_type: str
+    original_value: Optional[float]
+    replacement_value: Optional[float]
+    note: str
 
-    # 去重
-    file_list = list(set(file_list))
 
-    if not file_list:
-        logging.warning(f"在 {data_root} 下未找到任何匹配的文件")
-        return pd.DataFrame()
+@dataclass
+class SeriesSummary:
+    channel: int
+    cal_type: str
+    parameter: str
+    n_observed_input: int
+    n_outliers_flagged: int
+    n_substituted: int
+    n_synthetic_regularised: int
+    n_training_eligible_observed: int
+    start_date: str
+    end_date: str
 
-    logging.info(f"总共找到 {len(file_list)} 个文件进行处理...")
 
-    for i, filepath in enumerate(file_list):
-        try:
-            filename = os.path.basename(filepath)
-            if i < 10:  # 只记录前10个文件的详细信息
-                logging.info(f"正在处理文件 {i + 1}/{len(file_list)}: {filename}")
+def load_data(data_root: str) -> pd.DataFrame:
+    if not os.path.isdir(data_root):
+        raise FileNotFoundError(f"Input directory not found: {data_root}")
 
-            # 解析日期
-            date_match = re.search(r'(\d{8})\.csv$', filename)
-            if not date_match:
-                logging.warning(f"无法从文件名解析日期: {filename}")
+    frames: List[pd.DataFrame] = []
+    file_count = 0
+    for root, _, files in os.walk(data_root):
+        for fname in files:
+            m = FILE_RE.match(fname)
+            if not m:
                 continue
-
-            date_str = date_match.group(1)
-
-            # 判断类型
-            filename_upper = filename.upper()
-            if 'REF' in filename_upper:
-                cal_type = 'REF'
-            elif 'RAD' in filename_upper:
-                cal_type = 'RAD'
-            else:
-                logging.warning(f"无法确定文件类型(REF/RAD): {filename}")
-                continue
-
+            file_count += 1
+            cal_type = m.group("cal_type").upper()
+            obs_date = datetime.strptime(m.group("date"), "%Y%m%d")
+            fpath = os.path.join(root, fname)
             try:
-                date = datetime.strptime(date_str, '%Y%m%d')
-            except ValueError:
-                logging.warning(f"日期格式无效: {date_str} in {filename}")
+                tmp = pd.read_csv(
+                    fpath,
+                    comment="#",
+                    header=None,
+                    names=["Channel", "Intercept", "Slope"],
+                )
+            except Exception as exc:
+                logging.error("Failed to read %s: %s", fpath, exc)
                 continue
 
-            # 读取CSV文件
-            try:
-                df = pd.read_csv(filepath, comment='#', header=None,
-                                 names=['Channel', 'Intercept', 'Slope'])
+            tmp["date"] = pd.Timestamp(obs_date)
+            tmp["type"] = cal_type
+            tmp["source_file"] = fname
+            frames.append(tmp)
 
-                if i < 5:  # 只记录前5个文件的详细信息
-                    logging.info(f"  成功读取，形状: {df.shape}")
+    if not frames:
+        raise RuntimeError(f"No matching calibration files found under {data_root}")
 
-            except Exception as e:
-                logging.error(f"读取文件 {filename} 失败: {str(e)}")
-                continue
+    df = pd.concat(frames, ignore_index=True)
+    df["Channel"] = pd.to_numeric(df["Channel"], errors="coerce")
+    df = df.dropna(subset=["Channel", "Intercept", "Slope", "date", "type"])
+    df["Channel"] = df["Channel"].astype(int)
+    df = df.sort_values(["Channel", "type", "date"]).reset_index(drop=True)
 
-            df['date'] = date
-            df['type'] = cal_type
-            df['source_file'] = filename
-
-            data.append(df)
-
-        except Exception as e:
-            logging.error(f"处理文件 {filepath} 时出错: {str(e)}")
-            logging.error(traceback.format_exc())
-
-    if not data:
-        logging.error("未成功加载任何数据")
-        return pd.DataFrame()
-
-    # 合并数据
-    result_df = pd.concat(data, ignore_index=True)
-    logging.info(f"合并后的数据形状: {result_df.shape}")
-    logging.info(f"数据日期范围: {result_df['date'].min()} 到 {result_df['date'].max()}")
-    logging.info(f"REF数据点数: {len(result_df[result_df['type'] == 'REF'])}")
-    logging.info(f"RAD数据点数: {len(result_df[result_df['type'] == 'RAD'])}")
-    logging.info(f"通道分布: {result_df['Channel'].value_counts().sort_index().to_dict()}")
-
-    return result_df
-
-
-def process_data(df):
-    """数据预处理和特征工程"""
-    if df.empty:
-        return df
-
-    df['year'] = df['date'].dt.year
-    df['month'] = df['date'].dt.month
-    df['day'] = df['date'].dt.day
-    df['day_of_year'] = df['date'].dt.dayofyear
-
-    min_date = df['date'].min()
-    df['days_since_start'] = (df['date'] - min_date).dt.days
-
-    df['sin_day'] = np.sin(2 * np.pi * df['day_of_year'] / 365.25)
-    df['cos_day'] = np.cos(2 * np.pi * df['day_of_year'] / 365.25)
-    df['sin_month'] = np.sin(2 * np.pi * df['month'] / 12)
-    df['cos_month'] = np.cos(2 * np.pi * df['month'] / 12)
-
-    df['is_sample'] = ((df['day'] <= 5) | ((df['day'] >= 14) & (df['day'] <= 18)))
-    df['channel_type'] = df['Channel'].astype(str) + '_' + df['type']
-
+    logging.info(
+        "Loaded %d records from %d files. Date range: %s to %s",
+        len(df),
+        file_count,
+        df["date"].min().date(),
+        df["date"].max().date(),
+    )
     return df
 
 
-def detect_outliers(data, param, z_threshold=3.0):
-    """Z-score"""
-    if len(data) < 3:
-        data['is_outlier'] = False
-        return data
-
-    data = data.sort_values('date').copy()
-
-    z_scores = np.abs(zscore(data[param]))
-    data['is_outlier'] = z_scores > z_threshold
-
-    n_outliers = sum(data['is_outlier'])
-    if n_outliers > 0:
-        outlier_dates = data.loc[data['is_outlier'], 'date'].dt.strftime('%Y-%m-%d').tolist()
-        logging.info(
-            f"检测到 {n_outliers} 个异常值: {', '.join(outlier_dates[:5])}{'...' if len(outlier_dates) > 5 else ''}")
-
-    return data
-
-def create_pseudo_samples_for_outliers(clean_data, outlier_data):
-    """为异常值日期创建伪样本 - 使用前后两个日期的中值"""
-    if outlier_data.empty:
-        return pd.DataFrame()
-
-    pseudo_samples = []
-
-    for _, outlier_row in outlier_data.iterrows():
-        outlier_date = outlier_row['date']
-
-        # 查找前后相邻的日期
-        prev_data = clean_data[clean_data['date'] < outlier_date]
-        next_data = clean_data[clean_data['date'] > outlier_date]
-
-        if not prev_data.empty and not next_data.empty:
-            # 取最近的前一个和后一个日期
-            prev_date = prev_data['date'].max()
-            next_date = next_data['date'].min()
-
-            prev_value = clean_data[clean_data['date'] == prev_date]['value'].iloc[0]
-            next_value = clean_data[clean_data['date'] == next_date]['value'].iloc[0]
-
-            # 计算中值
-            pseudo_value = (prev_value + next_value) / 2
-
-            # 创建伪样本
-            pseudo_sample = outlier_row.copy()
-            pseudo_sample['value'] = pseudo_value
-            pseudo_sample['is_augmented'] = True
-            pseudo_sample['is_outlier'] = False
-
-            pseudo_samples.append(pseudo_sample)
-
-            logging.info(f"为异常值日期 {outlier_date.strftime('%Y-%m-%d')} 创建伪样本: "
-                         f"前值({prev_date.strftime('%Y-%m-%d')})={prev_value:.4f}, "
-                         f"后值({next_date.strftime('%Y-%m-%d')})={next_value:.4f}, "
-                         f"伪样本值={pseudo_value:.4f}")
-
-    return pd.DataFrame(pseudo_samples)
+def add_static_features(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df["year"] = df["date"].dt.year
+    df["month"] = df["date"].dt.month
+    df["day"] = df["date"].dt.day
+    df["doy"] = df["date"].dt.dayofyear
+    df["sin_doy"] = np.sin(2.0 * np.pi * df["doy"] / 365.25)
+    df["cos_doy"] = np.cos(2.0 * np.pi * df["doy"] / 365.25)
+    df["sin_mon"] = np.sin(2.0 * np.pi * df["month"] / 12.0)
+    df["cos_mon"] = np.cos(2.0 * np.pi * df["month"] / 12.0)
+    return df
 
 
-def augment_data(df):
-    """简化版数据增强"""
-    if len(df) < 3:
-        df['is_augmented'] = False
-        return df
+def robust_outlier_mask(values: np.ndarray, threshold: float = OUTLIER_THRESHOLD) -> np.ndarray:
+    if len(values) < 4:
+        return np.zeros(len(values), dtype=bool)
 
-    df = df.sort_values('date').reset_index(drop=True)
-    augmented = []
-    dates = pd.date_range(start=df['date'].min(), end=df['date'].max(), freq='D')
+    values = np.asarray(values, dtype=float)
+    med = float(np.median(values))
+    mad = float(median_abs_deviation(values, scale="normal"))
+    if mad < 1e-12:
+        q1, q3 = np.percentile(values, [25, 75])
+        iqr = q3 - q1
+        scale = iqr if iqr > 1e-12 else np.std(values)
+        if scale < 1e-12:
+            return np.zeros(len(values), dtype=bool)
+        return np.abs(values - med) > threshold * scale
 
-    for target_date in dates:
-        if target_date in df['date'].values:
+    modified_z = 0.6745 * np.abs(values - med) / mad
+    return modified_z > threshold
+
+
+def neighbour_substitution(clean_df: pd.DataFrame, target_date: pd.Timestamp) -> Tuple[Optional[float], str]:
+    if clean_df.empty:
+        return None, "no_clean_observations"
+
+    prev_obs = clean_df.loc[clean_df["date"] < target_date].sort_values("date").tail(1)
+    next_obs = clean_df.loc[clean_df["date"] > target_date].sort_values("date").head(1)
+
+    if prev_obs.empty and next_obs.empty:
+        return None, "no_neighbours"
+    if prev_obs.empty:
+        return float(next_obs["value"].iloc[0]), "single_forward_neighbour"
+    if next_obs.empty:
+        return float(prev_obs["value"].iloc[0]), "single_backward_neighbour"
+
+    t_prev = pd.Timestamp(prev_obs["date"].iloc[0])
+    t_next = pd.Timestamp(next_obs["date"].iloc[0])
+    v_prev = float(prev_obs["value"].iloc[0])
+    v_next = float(next_obs["value"].iloc[0])
+
+    d_prev = max((target_date - t_prev).days, 1)
+    d_next = max((t_next - target_date).days, 1)
+    w_prev = 1.0 / d_prev
+    w_next = 1.0 / d_next
+    val = (w_prev * v_prev + w_next * v_next) / (w_prev + w_next)
+    return float(val), "distance_weighted_neighbours"
+
+
+def regularise_gaps(clean_df: pd.DataFrame, max_gap_days: int) -> List[Tuple[pd.Timestamp, float, str]]:
+    results: List[Tuple[pd.Timestamp, float, str]] = []
+    if len(clean_df) < 2:
+        return results
+
+    clean_df = clean_df.sort_values("date").reset_index(drop=True)
+    for i in range(len(clean_df) - 1):
+        left = clean_df.iloc[i]
+        right = clean_df.iloc[i + 1]
+        gap = int((right["date"] - left["date"]).days)
+        if gap <= 1 or gap > max_gap_days:
             continue
+        total_gap = float(gap)
+        for step in range(1, gap):
+            d = pd.Timestamp(left["date"]) + pd.Timedelta(days=step)
+            w_left = 1.0 / step
+            w_right = 1.0 / (gap - step)
+            value = (w_left * float(left["value"]) + w_right * float(right["value"])) / (w_left + w_right)
+            results.append((d, float(value), f"gap_fill_{int(total_gap)}d"))
+    return results
 
-        prev_data = df[df['date'] < target_date]
-        next_data = df[df['date'] > target_date]
 
-        if not prev_data.empty and not next_data.empty:
-            prev_point = prev_data.iloc[-1]
-            next_point = next_data.iloc[0]
+def build_parameter_series(
+    base_group: pd.DataFrame,
+    parameter: str,
+    enable_regularisation: bool,
+    max_fill_gap_days: int,
+) -> Tuple[pd.DataFrame, List[AuditEvent], SeriesSummary]:
+    grp = base_group[["Channel", "type", "date", parameter, "source_file"]].copy()
+    grp = grp.rename(columns={parameter: "value"}).sort_values("date").reset_index(drop=True)
+    grp["channel"] = grp["Channel"].astype(int)
+    grp["parameter"] = parameter
+    grp["is_synthetic"] = False
+    grp["is_outlier"] = robust_outlier_mask(grp["value"].to_numpy())
+    grp["qc_status"] = np.where(grp["is_outlier"], "flagged_outlier", "observed")
+    grp["provenance"] = np.where(grp["is_outlier"], "original_flagged", "original_observed")
+    grp["used_for_training"] = ~grp["is_outlier"]
 
-            # 简化时间间隔检查
-            time_gap = max((target_date - prev_point['date']).days,
-                           (next_point['date'] - target_date).days)
+    audit: List[AuditEvent] = []
+    outliers = grp[grp["is_outlier"]].copy()
+    clean_obs = grp[~grp["is_outlier"]].copy()
 
-            if time_gap <= 30:  # 统一时间阈值
-                pseudo_value = (prev_point['value'] + next_point['value']) / 2
-
-                pseudo_point = {
-                    'date': target_date,
-                    'value': pseudo_value,
-                    'is_sample': False,
-                    'is_augmented': True,
-                    'is_outlier': False,
-                    'year': target_date.year,
-                    'month': target_date.month,
-                    'day': target_date.day,
-                    'day_of_year': target_date.timetuple().tm_yday,
-                    'days_since_start': (target_date - df['date'].min()).days,
-                    'sin_day': np.sin(2 * np.pi * target_date.timetuple().tm_yday / 365.25),
-                    'cos_day': np.cos(2 * np.pi * target_date.timetuple().tm_yday / 365.25),
-                    'sin_month': np.sin(2 * np.pi * target_date.month / 12),
-                    'cos_month': np.cos(2 * np.pi * target_date.month / 12)
+    substituted_rows: List[Dict[str, object]] = []
+    if len(clean_obs) >= MIN_POINTS_FOR_NEIGHBOUR_SUB:
+        for _, row in outliers.iterrows():
+            replacement, note = neighbour_substitution(clean_obs[["date", "value"]], pd.Timestamp(row["date"]))
+            audit.append(
+                AuditEvent(
+                    channel=int(row["channel"]),
+                    cal_type=str(row["type"]),
+                    parameter=parameter,
+                    date=pd.Timestamp(row["date"]).strftime("%Y-%m-%d"),
+                    event_type="outlier_flagged_and_substituted" if replacement is not None else "outlier_flagged_not_substituted",
+                    original_value=float(row["value"]),
+                    replacement_value=None if replacement is None else float(replacement),
+                    note=note,
+                )
+            )
+            if replacement is None:
+                continue
+            substituted_rows.append(
+                {
+                    "Channel": int(row["channel"]),
+                    "type": row["type"],
+                    "date": pd.Timestamp(row["date"]),
+                    "value": float(replacement),
+                    "source_file": row["source_file"],
+                    "channel": int(row["channel"]),
+                    "parameter": parameter,
+                    "is_synthetic": True,
+                    "is_outlier": False,
+                    "qc_status": "substituted_for_outlier",
+                    "provenance": "synthetic_substitution",
+                    "used_for_training": False,
                 }
-                augmented.append(pseudo_point)
-
-    df['is_augmented'] = False
-
-    if augmented:
-        augmented_df = pd.DataFrame(augmented)
-        combined_df = pd.concat([df, augmented_df], ignore_index=True)
-        logging.info(f"生成了 {len(augmented)} 个伪样本")
-        return combined_df.sort_values('date').reset_index(drop=True)
+            )
     else:
-        return df
+        for _, row in outliers.iterrows():
+            audit.append(
+                AuditEvent(
+                    channel=int(row["channel"]),
+                    cal_type=str(row["type"]),
+                    parameter=parameter,
+                    date=pd.Timestamp(row["date"]).strftime("%Y-%m-%d"),
+                    event_type="outlier_flagged_not_substituted",
+                    original_value=float(row["value"]),
+                    replacement_value=None,
+                    note="insufficient_clean_neighbours",
+                )
+            )
 
-def save_sample_data(df, output_dir):
-    """保存原始样本数据到CSV"""
+    model_df = clean_obs.copy()
+    if substituted_rows:
+        model_df = pd.concat([model_df, pd.DataFrame(substituted_rows)], ignore_index=True)
+
+    regularised_rows: List[Dict[str, object]] = []
+    if enable_regularisation and len(model_df) < SPARSE_SERIES_THRESHOLD:
+        for d, value, note in regularise_gaps(model_df[["date", "value"]], max_fill_gap_days=max_fill_gap_days):
+            regularised_rows.append(
+                {
+                    "Channel": int(grp["channel"].iloc[0]),
+                    "type": grp["type"].iloc[0],
+                    "date": d,
+                    "value": value,
+                    "source_file": "synthetic_regularisation",
+                    "channel": int(grp["channel"].iloc[0]),
+                    "parameter": parameter,
+                    "is_synthetic": True,
+                    "is_outlier": False,
+                    "qc_status": "regularised_gap",
+                    "provenance": note,
+                    "used_for_training": False,
+                }
+            )
+            audit.append(
+                AuditEvent(
+                    channel=int(grp["channel"].iloc[0]),
+                    cal_type=str(grp["type"].iloc[0]),
+                    parameter=parameter,
+                    date=pd.Timestamp(d).strftime("%Y-%m-%d"),
+                    event_type="gap_regularised",
+                    original_value=None,
+                    replacement_value=float(value),
+                    note=note,
+                )
+            )
+
+    all_rows = [clean_obs]
+    if substituted_rows:
+        all_rows.append(pd.DataFrame(substituted_rows))
+    if regularised_rows:
+        reg_df = pd.DataFrame(regularised_rows)
+        reg_df = reg_df[~reg_df["date"].isin(model_df["date"])]
+        if not reg_df.empty:
+            all_rows.append(reg_df)
+
+    final_df = pd.concat(all_rows, ignore_index=True).sort_values("date").reset_index(drop=True)
+    final_df = add_static_features(final_df)
+    ref_date = final_df["date"].min()
+    final_df["t_index"] = (final_df["date"] - ref_date).dt.days
+
+    summary = SeriesSummary(
+        channel=int(grp["channel"].iloc[0]),
+        cal_type=str(grp["type"].iloc[0]),
+        parameter=parameter,
+        n_observed_input=int(len(grp)),
+        n_outliers_flagged=int(grp["is_outlier"].sum()),
+        n_substituted=int(len(substituted_rows)),
+        n_synthetic_regularised=int(len(regularised_rows)),
+        n_training_eligible_observed=int((final_df["used_for_training"] == True).sum()),
+        start_date=final_df["date"].min().strftime("%Y-%m-%d"),
+        end_date=final_df["date"].max().strftime("%Y-%m-%d"),
+    )
+    return final_df, audit, summary
+
+
+def save_sample_data(df: pd.DataFrame, output_dir: str) -> None:
     os.makedirs(output_dir, exist_ok=True)
-
-    grouped = df.groupby(['date', 'type'])
+    grouped = df.groupby(["date", "type"])
     for (date, cal_type), group in grouped:
         coeff_matrix = []
-        channels = sorted(group['Channel'].unique())
-
+        channels = list(range(1, 8))
         for ch in channels:
-            ch_data = group[group['Channel'] == ch]
+            ch_data = group[group["Channel"] == ch]
             if len(ch_data) > 0:
                 row = ch_data.iloc[0]
-                coeff_matrix.append([row['Intercept'], row['Slope'], 0.0])
+                coeff_matrix.append([row["Intercept"], row["Slope"], 0.0])
             else:
                 coeff_matrix.append([np.nan, np.nan, 0.0])
 
         df_out = pd.DataFrame(
             coeff_matrix,
             index=[f"ch{str(i).zfill(2)}" for i in channels],
-            columns=['cal0', 'cal1', 'cal2']
+            columns=["cal0", "cal1", "cal2"],
         )
-
-        date_str = date.strftime('%Y%m%d')
-        csv_filename = f"{cal_type}_{date_str}.csv"
-        csv_path = os.path.join(output_dir, csv_filename)
+        csv_path = os.path.join(output_dir, f"{cal_type}_{date.strftime('%Y%m%d')}.csv")
         df_out.to_csv(csv_path)
 
-def main():
-    parser = argparse.ArgumentParser(description='数据预处理和增强')
-    parser.add_argument('--data_root', required=True, help='输入数据根目录')
-    parser.add_argument('--output_dir', required=True, help='预处理数据输出目录')
-    parser.add_argument('--sample_dir', required=True, help='样本数据输出目录')
 
+def run_pipeline(data_root: str, output_dir: str, sample_dir: str, enable_regularisation: bool, max_fill_gap_days: int) -> None:
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(sample_dir, exist_ok=True)
+
+    raw_df = load_data(data_root)
+    save_sample_data(raw_df, sample_dir)
+
+    processed_frames: List[pd.DataFrame] = []
+    audit_events: List[AuditEvent] = []
+    summaries: List[SeriesSummary] = []
+
+    for (channel, cal_type), group in raw_df.groupby(["Channel", "type"]):
+        logging.info("Processing channel=%s type=%s", channel, cal_type)
+        for parameter in ["Intercept", "Slope"]:
+            final_df, audit, summary = build_parameter_series(
+                group,
+                parameter=parameter,
+                enable_regularisation=enable_regularisation,
+                max_fill_gap_days=max_fill_gap_days,
+            )
+            processed_frames.append(final_df)
+            audit_events.extend(audit)
+            summaries.append(summary)
+
+    preprocessed = pd.concat(processed_frames, ignore_index=True)
+    preprocessed = preprocessed.sort_values(["channel", "type", "parameter", "date"]).reset_index(drop=True)
+    preprocessed_path = os.path.join(output_dir, "preprocessed_data.csv")
+    preprocessed.to_csv(preprocessed_path, index=False)
+
+    audit_df = pd.DataFrame([asdict(x) for x in audit_events])
+    audit_path = os.path.join(output_dir, "preprocessing_audit.csv")
+    audit_df.to_csv(audit_path, index=False)
+
+    summary_df = pd.DataFrame([asdict(x) for x in summaries])
+    summary_path = os.path.join(output_dir, "series_summary.csv")
+    summary_df.to_csv(summary_path, index=False)
+
+    logging.info("Saved preprocessed data to %s", preprocessed_path)
+    logging.info("Saved preprocessing audit to %s", audit_path)
+    logging.info("Saved series summary to %s", summary_path)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Data preprocessing and QC for calibration coefficient series.")
+    parser.add_argument("--data_root", required=True, help="Directory containing raw calibration CSV files.")
+    parser.add_argument("--output_dir", required=True, help="Directory for preprocessed outputs.")
+    parser.add_argument("--sample_dir", required=True, help="Directory for per-date sample matrices.")
+    parser.add_argument("--disable_regularisation", action="store_true", help="Disable synthetic gap regularisation.")
+    parser.add_argument("--max_fill_gap_days", type=int, default=MAX_FILL_GAP_DAYS, help="Maximum gap length eligible for regularisation.")
     args = parser.parse_args()
 
-    logging.info("开始数据预处理...")
+    try:
+        run_pipeline(
+            data_root=args.data_root,
+            output_dir=args.output_dir,
+            sample_dir=args.sample_dir,
+            enable_regularisation=not args.disable_regularisation,
+            max_fill_gap_days=args.max_fill_gap_days,
+        )
+    except Exception:
+        logging.error("Preprocessing failed:\n%s", traceback.format_exc())
+        raise
 
-    # 加载和处理数据
-    df = load_data(args.data_root)
-    if df.empty:
-        logging.error("未加载任何数据，程序退出")
-        return
-
-    df = process_data(df)
-
-    # 保存原始样本数据
-    save_sample_data(df, args.sample_dir)
-    logging.info(f"样本数据已保存到: {args.sample_dir}")
-
-    # 对每个通道和类型组合进行处理
-    groups = df.groupby(['Channel', 'type'])
-    processed_data = []
-
-    for (channel, cal_type), group in groups:
-        logging.info(f"处理通道 {channel} - {cal_type}")
-        group = group.sort_values('date')
-
-        for param in ['Intercept', 'Slope']:
-            param_data = group[['date', 'days_since_start', 'sin_day', 'cos_day',
-                                'sin_month', 'cos_month', 'year', param, 'is_sample']].copy()
-            param_data = param_data.rename(columns={param: 'value'})
-
-            # 异常值检测
-            param_data = detect_outliers(param_data, 'value')
-
-            # 分离异常值和正常数据
-            outlier_data = param_data[param_data['is_outlier']].copy()
-            clean_data = param_data[~param_data['is_outlier']].copy()
-
-            # 为异常值日期创建伪样本
-            pseudo_for_outliers = create_pseudo_samples_for_outliers(clean_data, outlier_data)
-
-            if not pseudo_for_outliers.empty:
-                logging.info(f"为 {len(pseudo_for_outliers)} 个异常值日期创建了伪样本")
-                # 将异常值的伪样本加入到clean_data中
-                clean_data = pd.concat([clean_data, pseudo_for_outliers], ignore_index=True)
-                clean_data = clean_data.sort_values('date')
-
-            # 数据增强 - 为缺失日期创建伪样本
-            if len(clean_data) < 20:
-                augmented_data = augment_data(clean_data)
-            else:
-                augmented_data = clean_data.copy()
-                augmented_data['is_augmented'] = False
-
-            # 添加标识信息
-            augmented_data['channel'] = channel
-            augmented_data['type'] = cal_type
-            augmented_data['parameter'] = param
-
-            processed_data.append(augmented_data)
-
-    # 保存预处理数据
-    if processed_data:
-        final_df = pd.concat(processed_data, ignore_index=True)
-        output_file = os.path.join(args.output_dir, 'preprocessed_data.csv')
-        final_df.to_csv(output_file, index=False)
-
-        # 统计信息
-        n_original = len(final_df[~final_df['is_augmented']])
-        n_augmented = len(final_df[final_df['is_augmented']])
-        logging.info(f"预处理数据统计: 原始样本 {n_original} 个, 伪样本 {n_augmented} 个")
-        logging.info(f"预处理数据已保存到: {output_file}")
-
-    logging.info("数据预处理完成!")
 
 if __name__ == "__main__":
     main()

@@ -1,218 +1,115 @@
 # -*- coding: utf-8 -*-
-"""
-主控程序 - 协调数据预处理、高斯插值和可视化
-"""
+"""Pipeline controller for the public release."""
 
-import os
-import glob
-import matplotlib
+from __future__ import annotations
 
-matplotlib.use('Agg')
-from datetime import datetime, timedelta
-import logging
-import traceback
 import argparse
+import json
+import logging
+import os
 import subprocess
 import sys
-import json
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List
 
-# 配置日志
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
 class MainController:
-    def __init__(self, data_root, output_dir):
-        self.data_root = data_root
-        self.output_dir = output_dir
-        self.setup_directories()
-
-    def setup_directories(self):
-        """创建所有必要的输出目录"""
-        self.dirs = {
-            'preprocess': os.path.join(self.output_dir, 'preprocessed_data'),
-            'interpolation': os.path.join(self.output_dir, 'interpolation_results'),
-            'visualization': os.path.join(self.output_dir, 'plots'),
-            'daily': os.path.join(self.output_dir, 'daily_results'),
-            'samples': os.path.join(self.output_dir, 'sample_data'),
-            'config': os.path.join(self.output_dir, 'config')
+    def __init__(self, data_root: str, work_dir: str, include_synthetic_in_training: bool = False) -> None:
+        self.data_root = os.path.abspath(data_root)
+        self.work_dir = os.path.abspath(work_dir)
+        self.include_synthetic_in_training = include_synthetic_in_training
+        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.run_root = os.path.join(self.work_dir, f"run_{self.timestamp}")
+        self.data_dir = os.path.join(self.run_root, "preprocessed")
+        self.sample_dir = os.path.join(self.run_root, "samples")
+        self.result_dir = os.path.join(self.run_root, "interpolation")
+        self.figure_dir = os.path.join(self.run_root, "figures")
+        self.script_dir = Path(__file__).resolve().parent
+        self.stage_scripts: Dict[str, str] = {
+            "preprocess": str(self.script_dir / "data_preprocess.py"),
+            "interpolate": str(self.script_dir / "gaussian_interpolation.py"),
+            "plot": str(self.script_dir / "result_plot.py"),
         }
 
-        for dir_path in self.dirs.values():
-            os.makedirs(dir_path, exist_ok=True)
+    def prepare_dirs(self) -> None:
+        for path in [self.run_root, self.data_dir, self.sample_dir, self.result_dir, self.figure_dir]:
+            os.makedirs(path, exist_ok=True)
 
-        logging.info(f"输出目录结构已创建在: {self.output_dir}")
+    def run_stage(self, stage: str, cmd: List[str]) -> None:
+        logging.info("Running stage: %s", stage)
+        logging.info("Command: %s", " ".join(cmd))
+        subprocess.run(cmd, check=True)
 
-    def run_preprocessing(self):
-        """运行数据预处理程序"""
-        logging.info("启动数据预处理...")
-
-        cmd = [
-            sys.executable, 'data_preprocess.py',
-            '--data_root', self.data_root,
-            '--output_dir', self.dirs['preprocess'],
-            '--sample_dir', self.dirs['samples'],
-        ]
-
-        try:
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-            logging.info("数据预处理完成")
-            logging.debug(result.stdout)
-            return True
-        except subprocess.CalledProcessError as e:
-            logging.error(f"数据预处理失败: {e}")
-            logging.error(f"错误输出: {e.stderr}")
-            return False
-
-    def run_interpolation(self):
-        """运行高斯插值程序"""
-        logging.info("启动高斯过程插值...")
-
-        cmd = [
-            #sys.executable, 'gaussian_interpolation.py',
-            sys.executable, 'interpolation_compare.py',
-            '--input_dir', self.dirs['preprocess'],
-            '--output_dir', self.dirs['interpolation'],
-            '--daily_dir', self.dirs['daily']
-        ]
-
-        try:
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-            logging.info("高斯插值完成")
-            logging.debug(result.stdout)
-            return True
-        except subprocess.CalledProcessError as e:
-            logging.error(f"高斯插值失败: {e}")
-            logging.error(f"错误输出: {e.stderr}")
-            return False
-
-    def run_visualization(self):
-        """运行可视化程序"""
-        logging.info("启动结果可视化...")
-
-        cmd = [
-            #sys.executable, 'result_plot.py',
-            sys.executable, 'plot_compare.py',
-            '--data_dir', self.dirs['preprocess'],
-            '--result_dir', self.dirs['interpolation'],
-            '--output_dir', self.dirs['visualization']
-        ]
-
-        try:
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-            logging.info("可视化完成")
-            logging.debug(result.stdout)
-            return True
-        except subprocess.CalledProcessError as e:
-            logging.error(f"可视化失败: {e}")
-            logging.error(f"错误输出: {e.stderr}")
-            return False
-
-    def save_configuration(self):
-        """保存运行配置"""
+    def write_run_config(self) -> None:
         config = {
-            'data_root': self.data_root,
-            'output_dir': self.output_dir,
-            'timestamp': datetime.now().isoformat(),
-            'directories': self.dirs
+            "timestamp": self.timestamp,
+            "data_root": self.data_root,
+            "run_root": self.run_root,
+            "python_executable": sys.executable,
+            "include_synthetic_in_training": self.include_synthetic_in_training,
+            "stage_scripts": self.stage_scripts,
         }
+        with open(os.path.join(self.run_root, "run_config.json"), "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
 
-        config_file = os.path.join(self.dirs['config'], 'run_config.json')
-        with open(config_file, 'w') as f:
-            json.dump(config, f, indent=2)
+    def execute(self) -> None:
+        self.prepare_dirs()
+        self.write_run_config()
 
-        logging.info(f"配置已保存到: {config_file}")
+        self.run_stage(
+            "preprocess",
+            [
+                sys.executable,
+                self.stage_scripts["preprocess"],
+                "--data_root", self.data_root,
+                "--output_dir", self.data_dir,
+                "--sample_dir", self.sample_dir,
+            ],
+        )
 
-    def run_pipeline(self):
-        """运行完整的数据处理管道"""
-        logging.info("=" * 50)
-        logging.info("开始运行完整的数据处理管道")
-        logging.info(f"数据根目录: {self.data_root}")
-        logging.info(f"输出目录: {self.output_dir}")
-        logging.info("=" * 50)
+        interp_cmd = [
+            sys.executable,
+            self.stage_scripts["interpolate"],
+            "--input_csv", os.path.join(self.data_dir, "preprocessed_data.csv"),
+            "--output_dir", self.result_dir,
+        ]
+        if self.include_synthetic_in_training:
+            interp_cmd.append("--include_synthetic_in_training")
+        self.run_stage("interpolate", interp_cmd)
 
-        # 检查输入目录是否存在
-        if not os.path.exists(self.data_root):
-            logging.error(f"输入数据目录不存在: {self.data_root}")
-            return False
+        self.run_stage(
+            "plot",
+            [
+                sys.executable,
+                self.stage_scripts["plot"],
+                "--data_dir", self.data_dir,
+                "--result_dir", self.result_dir,
+                "--output_dir", self.figure_dir,
+            ],
+        )
 
-        # 检查输入目录中是否有文件
-        pattern = os.path.join(self.data_root, '*', 'CAL_*_ch01toch07_*.csv')
-        file_list = glob.glob(pattern)
-        logging.info(f"找到 {len(file_list)} 个匹配的文件")
+        logging.info("Pipeline finished successfully. Outputs in %s", self.run_root)
 
-        if len(file_list) == 0:
-            logging.error("没有找到任何匹配的CSV文件，请检查数据路径和文件命名模式")
-            # 尝试其他模式
-            other_patterns = [
-                os.path.join(self.data_root, 'CAL_*_ch01toch07_*.csv'),
-                os.path.join(self.data_root, '*', '*CAL*ch01toch07*.csv'),
-                os.path.join(self.data_root, '*CAL*ch01toch07*.csv')
-            ]
-            for pattern in other_patterns:
-                files = glob.glob(pattern)
-                if files:
-                    logging.info(f"使用模式 '{pattern}' 找到 {len(files)} 个文件")
-                    file_list.extend(files)
 
-            if not file_list:
-                return False
-
-        # 显示前几个文件
-        for i, file_path in enumerate(file_list[:5]):
-            logging.info(f"文件 {i + 1}: {os.path.basename(file_path)}")
-        if len(file_list) > 5:
-            logging.info(f"... 还有 {len(file_list) - 5} 个文件")
-
-        self.save_configuration()
-
-        # 运行预处理
-        logging.info("启动数据预处理...")
-        if not self.run_preprocessing():
-            logging.error("预处理阶段失败，终止执行")
-            return False
-
-        # 检查预处理是否生成了文件
-        preprocess_dir = self.dirs['preprocess']
-        preprocess_files = os.listdir(preprocess_dir) if os.path.exists(preprocess_dir) else []
-        logging.info(f"预处理目录文件: {preprocess_files}")
-
-        # 运行插值
-        logging.info("启动高斯过程插值...")
-        if not self.run_interpolation():
-            logging.error("插值阶段失败，终止执行")
-            return False
-
-        # 检查插值结果
-        interpolation_dir = self.dirs['interpolation']
-        interpolation_files = os.listdir(interpolation_dir) if os.path.exists(interpolation_dir) else []
-        logging.info(f"插值目录文件: {interpolation_files}")
-
-        # 运行可视化
-        logging.info("启动结果可视化...")
-        if not self.run_visualization():
-            logging.warning("可视化阶段失败，但主要处理已完成")
-
-        logging.info("=" * 50)
-        logging.info("数据处理管道完成!")
-        logging.info("=" * 50)
-        return True
-
-def main():
-    parser = argparse.ArgumentParser(description='时间序列插值主控程序')
-    parser.add_argument('--data_root',
-                        default="/share/home/dq014/yuqiang/data/cali_result_last_bak/",
-                        help='输入数据根目录')
-    parser.add_argument('--output_dir',
-                        default="/share/home/dq014/yuqiang/data/inter_gaussian_251017_com",
-                        help='输出目录')
-
+def main() -> None:
+    parser = argparse.ArgumentParser(description="End-to-end controller for the calibration GP pipeline.")
+    parser.add_argument("--data_root", required=True, help="Directory containing raw calibration CSV files")
+    parser.add_argument("--work_dir", required=True, help="Directory where run outputs will be created")
+    parser.add_argument("--include_synthetic_in_training", action="store_true", help="Include synthetic rows in GP training instead of observed-only mode")
     args = parser.parse_args()
 
-    controller = MainController(args.data_root, args.output_dir)
-    controller.run_pipeline()
+    controller = MainController(
+        data_root=args.data_root,
+        work_dir=args.work_dir,
+        include_synthetic_in_training=args.include_synthetic_in_training,
+    )
+    controller.execute()
 
 
 if __name__ == "__main__":
