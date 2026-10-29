@@ -1,0 +1,22 @@
+{
+  "methods": [
+    "gp",
+    "linear",
+    "cubic"
+  ],
+  "minimum_observed_anchor_n": 200,
+  "training_only_parameter_zscore": 3,
+  "pseudo_samples": false,
+  "legacy_gp_restarts": 25,
+  "legacy_gp_random_seed": 42,
+  "blocked_interpolation": "Five contiguous date blocks; three interior blocks scored; each full date excluded from fits",
+  "future_extrapolation": "Final quarter of observed dates; no future samples used in fits; not interpolation",
+  "daily_product": "Fit all observed anchor dates after validation; cannot use this in-sample product to claim improvement",
+  "date_origin": "Fixed and shared between train and prediction within each native epoch",
+  "legacy_periodicity_caveat": "Original standardized five-feature GP retained; periodicity 365.25 is not literal days after feature standardization",
+  "legacy_source": "/share/home/dq014/yuqiang/crosscal_work_20261029/code/legacy/cali/trend_code/time_inter/interpolation_compare.py",
+  "legacy_sha256": "5495025cdb7fac6f533b06e67219dd4f2c650fa4c9235abeeb184954001b1e73",
+  "observed_unique_pixels": 1091897,
+  "observed_dates": 45,
+  "job_failures": []
+}

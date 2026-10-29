@@ -1,0 +1,18 @@
+{
+  "code_commit": "bba9f8d52dab7450853ac9e6d7e0a442d15c5b83",
+  "parent_experiment_code_commit": "bb689d0660ffc753fec7422747ab8a449f5935bb",
+  "code_repository": "https://github.com/Rhett12345/re-calibration",
+  "results_repository": "https://github.com/Rhett12345/mersi_recalibration",
+  "compute_nodes": [
+    "node112",
+    "node111"
+  ],
+  "primary_metric": "blocked_interpolation, post_update, Ref* RMSE, common observed pixels",
+  "status": "exploratory_interpolation_not_production_or_blinded",
+  "code_security_review": {
+    "files": 6,
+    "bytes": 46591,
+    "sensitive_patterns": 0,
+    "raw_or_cache_files": 0
+  }
+}

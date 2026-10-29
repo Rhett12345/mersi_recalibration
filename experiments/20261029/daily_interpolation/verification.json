@@ -1,0 +1,17 @@
+{
+  "population_reproduced": true,
+  "heldout_dates_absent_from_training": true,
+  "same_evaluation_population_for_all_methods": true,
+  "previous_future_holdout_metrics_reproduced": true,
+  "max_previous_rmse_difference": 3.3306690738754696e-16,
+  "previous_TOA_reflectance_metrics_reproduced": true,
+  "daily_product_no_extrapolation": true,
+  "epoch_boundary_respected": true,
+  "model_jobs": 70,
+  "model_failures": 0,
+  "daily_coefficient_rows": 15519,
+  "daily_dates": 739,
+  "unit_tests": 14,
+  "unit_tests_passed": true,
+  "source_scene_records_sha256": "56da5ce57fe5ae0b115afb4e3854eaf22680761abe39debafdc83d8cc9126c0e"
+}
