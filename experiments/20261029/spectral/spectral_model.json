@@ -1,0 +1,100 @@
+{
+  "status": "experimental_spectral_transfer",
+  "reference_sensor": "Terra MODIS",
+  "target_sensor": "FY-3F MERSI-III",
+  "method": "wavelength-integrated SRF; OLS with intercept; SHA256 profile-grouped holdout",
+  "units": "W m-2 sr-1 um-1",
+  "parameters": [
+    {
+      "channel": 1,
+      "modis_band": 3,
+      "slope": 0.9745008132554773,
+      "intercept": -1.295068913456305,
+      "train_n": 284,
+      "test_n": 51,
+      "r2": 0.9999801278572494,
+      "test_rmse": 0.5853067930986998,
+      "test_nrmse_percent": 0.16681038764921552,
+      "train_min": 163.21205585895532,
+      "train_max": 673.2544839151569
+    },
+    {
+      "channel": 2,
+      "modis_band": 4,
+      "slope": 0.9950723822364191,
+      "intercept": -0.37226077624973186,
+      "train_n": 284,
+      "test_n": 51,
+      "r2": 0.9999523608217666,
+      "test_rmse": 0.7269339401393594,
+      "test_nrmse_percent": 0.2359606450861584,
+      "train_min": 122.71862517156121,
+      "train_max": 595.5458608987219
+    },
+    {
+      "channel": 3,
+      "modis_band": 1,
+      "slope": 0.9973799370203694,
+      "intercept": 0.478823677793514,
+      "train_n": 284,
+      "test_n": 51,
+      "r2": 0.9999079166493047,
+      "test_rmse": 0.9815685362799965,
+      "test_nrmse_percent": 0.3789926657157002,
+      "train_min": 103.03206388239451,
+      "train_max": 504.51207749044096
+    },
+    {
+      "channel": 4,
+      "modis_band": 2,
+      "slope": 0.9842784480064966,
+      "intercept": -0.18536276577862054,
+      "train_n": 284,
+      "test_n": 51,
+      "r2": 0.9999782546156799,
+      "test_rmse": 0.32065607387869455,
+      "test_nrmse_percent": 0.19675311394612258,
+      "train_min": 57.76741486277404,
+      "train_max": 317.13236069288615
+    },
+    {
+      "channel": 5,
+      "modis_band": 26,
+      "slope": 0.9883885645679795,
+      "intercept": 0.0323331690932509,
+      "train_n": 284,
+      "test_n": 51,
+      "r2": 0.9996569042105303,
+      "test_rmse": 0.13689600957992804,
+      "test_nrmse_percent": 2.138790741699142,
+      "train_min": 0.042017878371190455,
+      "train_max": 31.716802480350374
+    },
+    {
+      "channel": 6,
+      "modis_band": 6,
+      "slope": 0.9849479975203563,
+      "intercept": -0.24630058220717643,
+      "train_n": 284,
+      "test_n": 51,
+      "r2": 0.9993506267577407,
+      "test_rmse": 0.1770878329476358,
+      "test_nrmse_percent": 0.6433208191960909,
+      "train_min": 8.640203946660483,
+      "train_max": 49.096494742251494
+    },
+    {
+      "channel": 7,
+      "modis_band": 7,
+      "slope": 1.0106540073767116,
+      "intercept": -0.019401729227132236,
+      "train_n": 284,
+      "test_n": 51,
+      "r2": 0.9988262667968646,
+      "test_rmse": 0.0694150377402347,
+      "test_nrmse_percent": 0.9226328316948346,
+      "train_min": 2.531259889592573,
+      "train_max": 12.23811929427305
+    }
+  ]
+}
