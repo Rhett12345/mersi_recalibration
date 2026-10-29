@@ -1,0 +1,51 @@
+{
+  "baseline": {
+    "seconds": 1.7089390344917774,
+    "peak_rss_mib": 787.2578125,
+    "hashes": {
+      "cell": "ca5353807ab7b2d62b800419caa0350523470c00e68f68539b6a40fdbb54163a",
+      "latitude": "4ec02349710af2393f5f02bee63c57fdb948523d784d88cc2fca20ef4b2b3ea5",
+      "longitude": "598d280990922b69cd27c3ccad086add5291a98a2f17f161a8e0f5b478380a43",
+      "distance_km": "665ae60bb33756ba7e718c6f5c6882ac3fe3ab2361563c377262e95a20628c30",
+      "dt_seconds": "19b7d0ba524ebfbc7f7e753c6a0bcc7d9e224802a8421720f2b94b1b7f2f3ffe",
+      "vza_fy": "b8d95bdfb6e7da84a382cbcd56327789626af096871bd2ae6e8e96ed90b8769f",
+      "vza_mod": "6031fe76025dacffbb2e6e0da650fae15a36eeae09509e7bf003df24350cff88",
+      "sza_fy": "01137174bf67361d1f92b12bfd4a7bf05f19fc745af63a38d37d6f5ddba3e7e0",
+      "sza_mod": "8e4812090a4706e13872e7225a426518927a4a6810ea544eb619bdad03ec086e",
+      "time_fy": "25de376a26df83d2fc954ff5f91b8454b44ea272de07ca2daf98273a865c1d94",
+      "dn": "43fb9f997c88bb6456736471d734c010f60ff73c5ea02bf48e270ac657eb7a18",
+      "reference": "b0faf8dc40d8ea13d5ebcee7009c6402860369be96f517d60451b466927018f9",
+      "native": "0374f415b4a4841f6c942d822745be999b7ff700f8cd9ab5169d69737290dcb8",
+      "valid": "595aa4f6ad9debb2266e3dd5051e19d6ac7ecd9d22db8a9428cfcafca74589db",
+      "modis_rad": "d3c7a43e8918dc9d943fe0863d7536a5d4dbf884c8a369265bc72fad1559684c",
+      "toa_factor": "fad7cbaea4c974aad8ee38df621e350a92ad75144fbae3f5d47107337abf603d",
+      "dates": "838423af062361fb6a0faa063574291a84c58ea8b32ab0058b19468a956a9f18"
+    },
+    "pixels": 752218
+  },
+  "candidate": {
+    "seconds": 1.3521736543625593,
+    "peak_rss_mib": 558.05078125,
+    "hashes": {
+      "cell": "ca5353807ab7b2d62b800419caa0350523470c00e68f68539b6a40fdbb54163a",
+      "latitude": "4ec02349710af2393f5f02bee63c57fdb948523d784d88cc2fca20ef4b2b3ea5",
+      "longitude": "598d280990922b69cd27c3ccad086add5291a98a2f17f161a8e0f5b478380a43",
+      "distance_km": "665ae60bb33756ba7e718c6f5c6882ac3fe3ab2361563c377262e95a20628c30",
+      "dt_seconds": "19b7d0ba524ebfbc7f7e753c6a0bcc7d9e224802a8421720f2b94b1b7f2f3ffe",
+      "vza_fy": "b8d95bdfb6e7da84a382cbcd56327789626af096871bd2ae6e8e96ed90b8769f",
+      "vza_mod": "6031fe76025dacffbb2e6e0da650fae15a36eeae09509e7bf003df24350cff88",
+      "sza_fy": "01137174bf67361d1f92b12bfd4a7bf05f19fc745af63a38d37d6f5ddba3e7e0",
+      "sza_mod": "8e4812090a4706e13872e7225a426518927a4a6810ea544eb619bdad03ec086e",
+      "time_fy": "25de376a26df83d2fc954ff5f91b8454b44ea272de07ca2daf98273a865c1d94",
+      "dn": "43fb9f997c88bb6456736471d734c010f60ff73c5ea02bf48e270ac657eb7a18",
+      "reference": "b0faf8dc40d8ea13d5ebcee7009c6402860369be96f517d60451b466927018f9",
+      "native": "0374f415b4a4841f6c942d822745be999b7ff700f8cd9ab5169d69737290dcb8",
+      "valid": "595aa4f6ad9debb2266e3dd5051e19d6ac7ecd9d22db8a9428cfcafca74589db",
+      "modis_rad": "d3c7a43e8918dc9d943fe0863d7536a5d4dbf884c8a369265bc72fad1559684c",
+      "toa_factor": "fad7cbaea4c974aad8ee38df621e350a92ad75144fbae3f5d47107337abf603d",
+      "dates": "838423af062361fb6a0faa063574291a84c58ea8b32ab0058b19468a956a9f18"
+    },
+    "pixels": 752218
+  },
+  "bitwise_equal": true
+}

@@ -12,3 +12,7 @@
 `fy3f_full`保留全时期混合诊断，`fy3f_pre_update`和`fy3f_post_update`分别保存原生定标更新前后结果。中间缓存、真实像元数组和下载参考文件均不进入Git。本目录仅保存小型统计、核验记录、报告和图件。
 
 - [FY-3F逐日插值、三种方法比较及反射率提升](daily_interpolation/REPORT.md)
+
+## Joint fixed-coefficient validation
+
+[FY-3D/FY-3F report](fixed_joint/REPORT.md) includes held-out Bias, RMSE, MAE, failure cases, publication figures and numerical comparisons. No daily interpolation is used.

@@ -1,0 +1,14 @@
+{
+  "host": "node111",
+  "fy3f_native_reader_bitwise_equal": true,
+  "fy3f_fixed_validation_max_absolute_metric_change": 0,
+  "fy3f_validation_pair_counts": [
+    212823,
+    221063,
+    225531,
+    233898,
+    234855,
+    79389,
+    74963
+  ]
+}

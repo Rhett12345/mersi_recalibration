@@ -1,0 +1,4 @@
+smoke_cache/
+*.log
+*.npz
+fy3d_matched/daily_metrics.csv
