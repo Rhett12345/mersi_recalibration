@@ -1,0 +1,9 @@
+{
+  "host": "node112",
+  "source_records": "/share/home/dq014/yuqiang/crosscal_work_20261029/results/experiments/20261029/fy3f_full/scene_records.json",
+  "scene_pairs": 463,
+  "old_valid_masks_reconstructed": 133,
+  "recovered_small_scenes": 22,
+  "failed": 0,
+  "all_other_stored_arrays_unchanged": true
+}

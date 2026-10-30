@@ -1,3 +1,5 @@
+> Updated policy/results: [no spectral training-range rejection; all paired dates attempted](../no_spectral_gate/REPORT.md). This directory preserves the previous policy for comparison.
+
 # 每个实际观测日独立再定标输出
 
 本目录按原定标输出形式组织。每个 YYYYMMDD 文件夹只使用当天有效匹配

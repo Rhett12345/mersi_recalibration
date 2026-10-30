@@ -1,0 +1,78 @@
+{
+  "sensor": "FY3F",
+  "date": "20251108",
+  "scope": "one paired date only; no interpolation",
+  "channels": [
+    {
+      "channel": 1,
+      "candidate_n": 7458,
+      "status": "fit",
+      "intercept": -4.695743606184408,
+      "slope": 0.027764384811441684,
+      "quadratic": 0.0,
+      "n": 7012,
+      "r": 0.9947001606291984
+    },
+    {
+      "channel": 2,
+      "candidate_n": 7458,
+      "status": "fit",
+      "intercept": -7.778739935351901,
+      "slope": 0.02874614989158144,
+      "quadratic": 0.0,
+      "n": 6973,
+      "r": 0.995302399521965
+    },
+    {
+      "channel": 3,
+      "candidate_n": 7458,
+      "status": "fit",
+      "intercept": -4.546104361238871,
+      "slope": 0.0279673712376756,
+      "quadratic": 0.0,
+      "n": 6986,
+      "r": 0.9937502950149204
+    },
+    {
+      "channel": 4,
+      "candidate_n": 7458,
+      "status": "fit",
+      "intercept": -8.010160777905092,
+      "slope": 0.03108470351731356,
+      "quadratic": 0.0,
+      "n": 6978,
+      "r": 0.994296453974769
+    },
+    {
+      "channel": 5,
+      "candidate_n": 7458,
+      "status": "fit",
+      "intercept": -9.455008930983244,
+      "slope": 0.04472727923659611,
+      "quadratic": 0.0,
+      "n": 7103,
+      "r": 0.996912887533261
+    },
+    {
+      "channel": 6,
+      "candidate_n": 7458,
+      "status": "fit",
+      "intercept": -14.567816167560242,
+      "slope": 0.06673304468349327,
+      "quadratic": 0.0,
+      "n": 7097,
+      "r": 0.9904923471048561
+    },
+    {
+      "channel": 7,
+      "candidate_n": 7458,
+      "status": "fit",
+      "intercept": -9.85589499244973,
+      "slope": 0.05329383597479569,
+      "quadratic": 0.0,
+      "n": 7111,
+      "r": 0.9860407257925534
+    }
+  ],
+  "maximum_band_candidate_n": 7458
+}

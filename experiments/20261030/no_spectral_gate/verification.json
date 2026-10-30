@@ -1,0 +1,86 @@
+{
+  "host": "node112",
+  "sensors": {
+    "FY3D": {
+      "paired_dates": 261,
+      "all_dates_attempted": true,
+      "complete_seven_band_dates": 175,
+      "partial_fit_dates": 5,
+      "no_fit_dates": 81,
+      "old_valid_dates": 170,
+      "new_valid_dates": 180,
+      "old_channel_candidate_n": [
+        1354456,
+        1543414,
+        1676536,
+        1711480,
+        1851406,
+        654244,
+        687303
+      ],
+      "new_channel_candidate_n": [
+        3765537,
+        3766994,
+        3765940,
+        3682289,
+        1907120,
+        2100411,
+        3745567
+      ],
+      "new_channel_regression_n": [
+        3572043,
+        3572186,
+        3570745,
+        3502228,
+        1811021,
+        1996876,
+        3567105
+      ],
+      "stored_arrays_checked_unchanged": 220,
+      "first_paired_date": "20180103",
+      "last_paired_date": "20250302"
+    },
+    "FY3F": {
+      "paired_dates": 66,
+      "all_dates_attempted": true,
+      "complete_seven_band_dates": 45,
+      "partial_fit_dates": 0,
+      "no_fit_dates": 21,
+      "old_valid_dates": 45,
+      "new_valid_dates": 45,
+      "old_channel_candidate_n": [
+        841512,
+        932548,
+        940664,
+        1019408,
+        1076331,
+        280528,
+        209408
+      ],
+      "new_channel_candidate_n": [
+        1093281,
+        1093281,
+        1093281,
+        1093281,
+        1089661,
+        1090222,
+        1090397
+      ],
+      "new_channel_regression_n": [
+        1040577,
+        1036500,
+        1038453,
+        1035873,
+        1040143,
+        1034118,
+        1036522
+      ],
+      "stored_arrays_checked_unchanged": 133,
+      "first_paired_date": "20240704",
+      "last_paired_date": "20260712"
+    }
+  },
+  "no_spectral_domain_rejection": true,
+  "no_scene_count_rejection": true,
+  "cv_sza_geometry_unchanged": true
+}
