@@ -1,0 +1,52 @@
+[
+  {
+    "sensor": "FY3D",
+    "paired_dates": 261,
+    "all_seven_bands": 175,
+    "partial": 5,
+    "no_band": 81,
+    "per_band_available": [
+      180,
+      180,
+      180,
+      180,
+      177,
+      177,
+      180
+    ],
+    "per_band_missing": [
+      81,
+      81,
+      81,
+      81,
+      84,
+      84,
+      81
+    ]
+  },
+  {
+    "sensor": "FY3F",
+    "paired_dates": 66,
+    "all_seven_bands": 45,
+    "partial": 0,
+    "no_band": 21,
+    "per_band_available": [
+      45,
+      45,
+      45,
+      45,
+      45,
+      45,
+      45
+    ],
+    "per_band_missing": [
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21
+    ]
+  }
+]

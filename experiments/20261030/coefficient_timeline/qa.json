@@ -1,0 +1,38 @@
+{
+  "host": "node112",
+  "figures": [
+    {
+      "figure": "FY3D_FY3F_date_coverage",
+      "png_pixels": [
+        5248,
+        2191
+      ],
+      "pdf_embedded_truetype": true,
+      "svg_editable_text": true,
+      "visual_qa": "passed"
+    },
+    {
+      "figure": "FY3D_daily_coefficients",
+      "png_pixels": [
+        4197,
+        4713
+      ],
+      "pdf_embedded_truetype": true,
+      "svg_editable_text": true,
+      "visual_qa": "passed"
+    },
+    {
+      "figure": "FY3F_daily_coefficients",
+      "png_pixels": [
+        4198,
+        4713
+      ],
+      "pdf_embedded_truetype": true,
+      "svg_editable_text": true,
+      "visual_qa": "passed"
+    }
+  ],
+  "no_interpolation": true,
+  "no_outlier_clipping": true,
+  "coefficient_csv_values_checked": true
+}

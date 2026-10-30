@@ -62,3 +62,7 @@ Negative reductions are retained: the new model is not uniformly better. FY-3D B
 tools/revalidate_scene_caches.py recomputes only masks using real MODIS UI and verifies exact reconstruction of each original accepted mask. All other stored arrays were checked unchanged; discarded small scenes were rematched from real L1/GEO files. Revalidation summaries remain in matches/. Source records with known corrupt/invalid geometry inputs remain explicit.
 
 The prior policy results in ../observed_daily/ are historical. This directory is the updated policy. Raw satellite data, pixel caches and logs are not committed.
+
+## Inspect coefficient scatter and gaps
+
+[Daily coefficient timelines and date lists](../coefficient_timeline/README.md) show all actual slopes/intercepts and missing paired dates without altering coefficients or QC.
