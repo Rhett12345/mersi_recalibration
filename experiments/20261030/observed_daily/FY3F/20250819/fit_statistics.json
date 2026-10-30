@@ -1,0 +1,57 @@
+{
+  "sensor": "FY3F",
+  "date": "20250819",
+  "scope": "one observed date only; no interpolation",
+  "channels": [
+    {
+      "channel": 1,
+      "candidate_n": 0,
+      "status": "insufficient_samples",
+      "reason": "Insufficient DN sample range"
+    },
+    {
+      "channel": 2,
+      "candidate_n": 0,
+      "status": "insufficient_samples",
+      "reason": "Insufficient DN sample range"
+    },
+    {
+      "channel": 3,
+      "candidate_n": 0,
+      "status": "insufficient_samples",
+      "reason": "Insufficient DN sample range"
+    },
+    {
+      "channel": 4,
+      "candidate_n": 12,
+      "status": "insufficient_samples",
+      "reason": "Insufficient DN sample range"
+    },
+    {
+      "channel": 5,
+      "candidate_n": 206,
+      "status": "fit",
+      "intercept": -8.298696665485089,
+      "slope": 0.040066319217516605,
+      "quadratic": 0.0,
+      "n": 199,
+      "r": 0.9687379283368238
+    },
+    {
+      "channel": 6,
+      "candidate_n": 71,
+      "status": "fit",
+      "intercept": -13.221645715887862,
+      "slope": 0.062448392898282835,
+      "quadratic": 0.0,
+      "n": 68,
+      "r": 0.9578731589587292
+    },
+    {
+      "channel": 7,
+      "candidate_n": 19,
+      "status": "insufficient_samples",
+      "reason": "Insufficient DN sample range"
+    }
+  ]
+}

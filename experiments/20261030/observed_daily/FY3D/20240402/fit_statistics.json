@@ -1,0 +1,65 @@
+{
+  "sensor": "FY3D",
+  "date": "20240402",
+  "scope": "one observed date only; no interpolation",
+  "channels": [
+    {
+      "channel": 1,
+      "candidate_n": 11,
+      "status": "insufficient_samples",
+      "reason": "Insufficient DN sample range"
+    },
+    {
+      "channel": 2,
+      "candidate_n": 179,
+      "status": "fit",
+      "intercept": -0.005136993507189658,
+      "slope": 0.022856982871671514,
+      "quadratic": 0.0,
+      "n": 173,
+      "r": 0.9302004197448343
+    },
+    {
+      "channel": 3,
+      "candidate_n": 502,
+      "status": "fit",
+      "intercept": -5.315945227501224,
+      "slope": 0.025740643539820907,
+      "quadratic": 0.0,
+      "n": 477,
+      "r": 0.9627523307562158
+    },
+    {
+      "channel": 4,
+      "candidate_n": 2086,
+      "status": "fit",
+      "intercept": -3.9307138144535614,
+      "slope": 0.02730825278536426,
+      "quadratic": 0.0,
+      "n": 1968,
+      "r": 0.987558820712377
+    },
+    {
+      "channel": 5,
+      "candidate_n": 2166,
+      "status": "fit",
+      "intercept": -3.4224056797623987,
+      "slope": 0.024369499832499173,
+      "quadratic": 0.0,
+      "n": 2073,
+      "r": 0.9051181967387651
+    },
+    {
+      "channel": 6,
+      "candidate_n": 0,
+      "status": "insufficient_samples",
+      "reason": "Insufficient DN sample range"
+    },
+    {
+      "channel": 7,
+      "candidate_n": 0,
+      "status": "insufficient_samples",
+      "reason": "Insufficient DN sample range"
+    }
+  ]
+}

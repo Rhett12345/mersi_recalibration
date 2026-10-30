@@ -16,3 +16,7 @@
 ## Joint fixed-coefficient validation
 
 [FY-3D/FY-3F report](fixed_joint/REPORT.md) includes held-out Bias, RMSE, MAE, failure cases, publication figures and numerical comparisons. No daily interpolation is used.
+
+## Current per-date calibration output
+
+[Observed-date results](../20261030/observed_daily/README.md) replace annual/period fit diagnostics as the calibration output. Each actual date has one seven-panel PNG and a companion coefficient CSV.

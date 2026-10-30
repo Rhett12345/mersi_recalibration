@@ -1,3 +1,5 @@
+> Superseded for calibration output: see ../../20261030/observed_daily/. Each actual observation date now has its own independent fit and PNG/CSV. The annual/period figures below are historical diagnostics only.
+
 # Per-fit diagnostic delivery
 
 Code commit: `473036dddf587cff2426b381e08cc0add5d148dc`

@@ -1,0 +1,15 @@
+{
+  "code_commit": "19686cf4e97814be8be249fde8f09aac8d660cbc",
+  "source_sha256": {
+    "README.md": "70a1afa4ee467bb558d4bb5934a86aec0f49679b9f34e3ff029eeffb4e01ab26",
+    "crosscal/daily_calibration.py": "4391f03db8542714694690ead2a8312ef2f897574f5001bd14b66b0bb9585362",
+    "crosscal/fit_plot.py": "0507d6811eda82fe369f5e56f2fc59f2fbd044cda8a20ac1e17d929123b72d23",
+    "tools/evaluate_fixed.py": "cbe8ac301e88b3b26fce1ca8cd7e7bdd4fc1e462514b5a162a0e42e3259e9347",
+    "tools/run_fy3f.py": "da43a0f25d76948ab7607645c84e0ee405cde8485b5859c6aa78d96992f36df1",
+    "tools/plot_fit_diagnostics.py": "8bf984c29e6c6a4772c1449c49692b088b7f2f87b2d4403782f2b5ee3c041ce5",
+    "tools/run_daily_calibration.py": "819c6d97ea72498ae5e129b75bdbb370eace4dd20cbd90a482485861b92527b4",
+    "tools/report_fixed.py": "fd322076a29213cf469b3c570dc0c9f8d23d07051e62b31d6dd3978305b6f887",
+    "tests/test_daily_calibration.py": "9dffa5d629c4c4b052ea4fc042cfadcbd726d6060fcdeed58bf928eceff09c85"
+  },
+  "scope": "observed-date grouping/output correction; current spectral/QC/DN profile retained"
+}

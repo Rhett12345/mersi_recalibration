@@ -1,0 +1,73 @@
+{
+  "sensor": "FY3D",
+  "date": "20240606",
+  "scope": "one observed date only; no interpolation",
+  "channels": [
+    {
+      "channel": 1,
+      "candidate_n": 5010,
+      "status": "fit",
+      "intercept": -3.6744267050747794,
+      "slope": 0.02955285473802243,
+      "quadratic": 0.0,
+      "n": 4730,
+      "r": 0.9913329055194953
+    },
+    {
+      "channel": 2,
+      "candidate_n": 5010,
+      "status": "fit",
+      "intercept": -3.5820747789742526,
+      "slope": 0.026088727092143993,
+      "quadratic": 0.0,
+      "n": 4733,
+      "r": 0.9888638943341067
+    },
+    {
+      "channel": 3,
+      "candidate_n": 5010,
+      "status": "fit",
+      "intercept": -6.615651645966828,
+      "slope": 0.02664527805906616,
+      "quadratic": 0.0,
+      "n": 4743,
+      "r": 0.9895341725200387
+    },
+    {
+      "channel": 4,
+      "candidate_n": 5010,
+      "status": "fit",
+      "intercept": -2.8690124068991096,
+      "slope": 0.026066317001137745,
+      "quadratic": 0.0,
+      "n": 4738,
+      "r": 0.9923546160699676
+    },
+    {
+      "channel": 5,
+      "candidate_n": 1463,
+      "status": "fit",
+      "intercept": -3.6678027167167344,
+      "slope": 0.025930448660483305,
+      "quadratic": 0.0,
+      "n": 1423,
+      "r": 0.875201613313178
+    },
+    {
+      "channel": 6,
+      "candidate_n": 19,
+      "status": "insufficient_samples",
+      "reason": "Insufficient DN sample range"
+    },
+    {
+      "channel": 7,
+      "candidate_n": 20,
+      "status": "fit",
+      "intercept": 6.429264926660299,
+      "slope": 0.006053118098905132,
+      "quadratic": 0.0,
+      "n": 20,
+      "r": 0.39693163641031176
+    }
+  ]
+}
