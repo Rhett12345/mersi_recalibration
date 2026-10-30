@@ -1,0 +1,11 @@
+sensor,channel,segment,method,first_observed,last_observed,n_observed,strict_anchors,relaxed_anchors,selection_scope
+FY3F,1,all,linear,20240704,20260712,63,45,18,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3F,2,all,linear,20240704,20260712,63,45,18,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3F,3,all,linear,20240704,20260712,63,45,18,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3F,4,all,linear,20240704,20260712,63,45,18,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3F,5,post_20250122,linear,20250203,20260712,47,34,13,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3F,5,pre_20250122,linear,20240704,20250112,16,11,5,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3F,6,post_20250122,linear,20250203,20260712,47,34,13,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3F,6,pre_20250122,linear,20240704,20250112,16,11,5,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3F,7,post_20250122,linear,20250203,20260712,47,34,13,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3F,7,pre_20250122,linear,20240704,20250112,16,11,5,previously_selected_method_refit_to_actual_anchors; no fallback training

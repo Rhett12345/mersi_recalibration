@@ -1,0 +1,8 @@
+sensor,channel,segment,method,first_observed,last_observed,n_observed,strict_anchors,relaxed_anchors,selection_scope
+FY3D,1,all,linear,20180103,20250215,253,180,73,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3D,2,all,linear,20180103,20250215,253,180,73,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3D,3,all,linear,20180103,20250215,253,180,73,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3D,4,all,linear,20180103,20250215,253,180,73,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3D,5,all,linear,20180103,20250215,252,177,75,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3D,6,all,linear,20180103,20250215,253,177,76,previously_selected_method_refit_to_actual_anchors; no fallback training
+FY3D,7,all,spline_10,20180103,20250215,253,180,73,previously_selected_method_refit_to_actual_anchors; no fallback training

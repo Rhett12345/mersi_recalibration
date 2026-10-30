@@ -41,7 +41,9 @@ mersi_recalibration/
 │       ├── YYYYMMDD/
 │       │   └── CAL_RAD_ch01toch07_YYYYMMDD.csv
 │       ├── daily_coefficients.csv
-│       └── model_manifest.csv
+│       ├── model_manifest.csv
+│       ├── completion_manifest.csv
+│       └── paired_date_coefficients.csv
 ├── FY3F/
 │   ├── observed/
 │   │   ├── YYYYMMDD/
@@ -51,16 +53,18 @@ mersi_recalibration/
 │       ├── YYYYMMDD/
 │       │   └── CAL_RAD_ch01toch07_YYYYMMDD.csv
 │       ├── daily_coefficients.csv
-│       └── model_manifest.csv
+│       ├── model_manifest.csv
+│       ├── completion_manifest.csv
+│       └── paired_date_coefficients.csv
 ├── LICENSE
 └── README.md
 ```
 
 ### 🛰️ `FY3D/observed/` and `FY3F/observed/` | 真实交叉定标系数
 
-These are coefficients fitted from actual matched satellite observations. Original dated coefficient CSVs are preserved without modification. A date with only some fitted bands retains missing values for the other bands.
+These are coefficients fitted from actual matched satellite observations. Original dated coefficient CSVs are preserved without modification. Dated files contain seven actual fitted bands. Partial actual fits are retained in the coefficient manifest; complete usable observation-date sets are provided separately.
 
-这些系数来自真实卫星匹配观测的单日拟合，原始单日 CSV 保持不变。部分波段未能拟合的日期保留相应缺测值。`coefficient_manifest.csv` 记录全精度系数、有效样本数、拟合状态及原因；未能拟合的配对日期仅作为索引记录，不作为插值锚点。
+这些系数来自真实卫星匹配观测的单日拟合，原始单日 CSV 保持不变。日期文件仅在七个波段均有真实拟合时生成；部分通道的真实拟合结果仍保留于索引。`coefficient_manifest.csv` 记录全精度系数、有效样本数、拟合状态及原因；未能真实拟合的通道不作为独立观测锚点。
 
 ### 📈 `FY3D/interpolated/` and `FY3F/interpolated/` | 每日插值系数
 
@@ -83,6 +87,8 @@ The current repository tree contains coefficient CSVs and the necessary CSV inde
 2. **Choose the satellite and coefficient source | 选择卫星与系数来源**
 
    使用实际交叉定标结果时，读取相应卫星的 `observed/`；需要每日估计时，读取 `interpolated/`，同时查看索引中的支持范围、缺测状态和观测间隔。FY-3D 与 FY-3F 的系数不能互换。
+
+   每个配对日期的完整七通道可用系数见 `interpolated/paired_date_coefficients.csv`。仅当原筛选不足时才分级补救；仍无法拟合的通道使用最近日期的真实系数，并以 `source_type`、`source_date` 和质量标记明确区分。此类兜底值不计为新增真实交叉定标观测。
 
 3. **Read the coefficient convention | 核对系数定义**
 
