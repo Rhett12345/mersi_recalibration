@@ -1,0 +1,11 @@
+sensor,channel,segment,method,first_observed,last_observed,n_observed,outer_validation_dates,model_description
+FY3F,1,all,linear,20240704,20260712,45,12,linear
+FY3F,2,all,linear,20240704,20260712,45,12,linear
+FY3F,3,all,linear,20240704,20260712,45,12,linear
+FY3F,4,all,linear,20240704,20260712,45,12,linear
+FY3F,5,pre_20250122,linear,20240704,20250112,11,6,linear
+FY3F,5,post_20250122,linear,20250203,20260712,34,12,linear
+FY3F,6,pre_20250122,linear,20240704,20250112,11,6,linear
+FY3F,6,post_20250122,linear,20250203,20260712,34,12,linear
+FY3F,7,pre_20250122,linear,20240704,20250112,11,6,linear
+FY3F,7,post_20250122,linear,20250203,20260712,34,12,linear

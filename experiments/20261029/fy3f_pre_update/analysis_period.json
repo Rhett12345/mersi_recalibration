@@ -1,6 +1,0 @@
-{
-  "start": "00000000",
-  "end": "20250121",
-  "source_scene_records": "../results/experiments/20261029/fy3f_full/scene_records.json",
-  "basis": "2025-01-22 NSMC native B5-B7 calibration update; no cross-period DN pooling"
-}

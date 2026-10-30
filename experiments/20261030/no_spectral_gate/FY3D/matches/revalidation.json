@@ -1,9 +1,0 @@
-{
-  "host": "node111",
-  "source_records": "/share/home/dq014/yuqiang/crosscal_work_20261029/results/experiments/20261029/fixed_joint/fy3d_matched/scene_records.json",
-  "scene_pairs": 769,
-  "old_valid_masks_reconstructed": 220,
-  "recovered_small_scenes": 24,
-  "failed": 5,
-  "all_other_stored_arrays_unchanged": true
-}

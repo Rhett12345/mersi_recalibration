@@ -1,0 +1,8 @@
+sensor,channel,segment,method,first_observed,last_observed,n_observed,outer_validation_dates,model_description
+FY3D,1,all,linear,20180103,20250115,180,18,linear
+FY3D,2,all,linear,20180103,20250115,180,18,linear
+FY3D,3,all,linear,20180103,20250115,180,18,linear
+FY3D,4,all,linear,20180103,20250115,180,18,linear
+FY3D,5,all,linear,20180103,20250115,177,18,linear
+FY3D,6,all,linear,20180103,20250115,177,18,linear
+FY3D,7,all,spline_10,20180103,20250115,180,18,spline_10

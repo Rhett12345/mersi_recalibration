@@ -1,0 +1,11 @@
+# Satellite-separated coefficient CSVs only.
+*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/FY3D/
+!/FY3F/
+!/FY3D/**/
+!/FY3F/**/
+!/FY3D/**/*.csv
+!/FY3F/**/*.csv

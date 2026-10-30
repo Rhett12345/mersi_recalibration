@@ -1,7 +1,0 @@
-{
-  "host": "node112",
-  "one_observed_date_one_png": true,
-  "legacy_csv_schema": true,
-  "no_aggregated_fit_output": true,
-  "single_date_coefficients_match_batch": true
-}
