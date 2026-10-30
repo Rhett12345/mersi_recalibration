@@ -1,0 +1,106 @@
+[
+  {
+    "figure": "fy3d/fit_diagnostics/CAL_RAD_ch01toch07_FY3D_2018.png",
+    "pixels": [
+      6052,
+      9058
+    ],
+    "dpi": [
+      499.99899999999997,
+      499.99899999999997
+    ],
+    "csv_schema_preserved": true,
+    "pdf_font_embedded": true
+  },
+  {
+    "figure": "fy3d/fit_diagnostics/CAL_RAD_ch01toch07_FY3D_2019.png",
+    "pixels": [
+      6052,
+      9058
+    ],
+    "dpi": [
+      499.99899999999997,
+      499.99899999999997
+    ],
+    "csv_schema_preserved": true,
+    "pdf_font_embedded": true
+  },
+  {
+    "figure": "fy3d/fit_diagnostics/CAL_RAD_ch01toch07_FY3D_2020.png",
+    "pixels": [
+      6052,
+      9058
+    ],
+    "dpi": [
+      499.99899999999997,
+      499.99899999999997
+    ],
+    "csv_schema_preserved": true,
+    "pdf_font_embedded": true
+  },
+  {
+    "figure": "fy3d/fit_diagnostics/CAL_RAD_ch01toch07_FY3D_2021.png",
+    "pixels": [
+      6052,
+      9058
+    ],
+    "dpi": [
+      499.99899999999997,
+      499.99899999999997
+    ],
+    "csv_schema_preserved": true,
+    "pdf_font_embedded": true
+  },
+  {
+    "figure": "fy3d/fit_diagnostics/CAL_RAD_ch01toch07_FY3D_2022.png",
+    "pixels": [
+      6051,
+      9058
+    ],
+    "dpi": [
+      499.99899999999997,
+      499.99899999999997
+    ],
+    "csv_schema_preserved": true,
+    "pdf_font_embedded": true
+  },
+  {
+    "figure": "fy3d/fit_diagnostics/CAL_RAD_ch01toch07_FY3D_2023.png",
+    "pixels": [
+      6056,
+      9058
+    ],
+    "dpi": [
+      499.99899999999997,
+      499.99899999999997
+    ],
+    "csv_schema_preserved": true,
+    "pdf_font_embedded": true
+  },
+  {
+    "figure": "fy3d/fit_diagnostics/CAL_RAD_ch01toch07_FY3D_2024.png",
+    "pixels": [
+      6049,
+      9058
+    ],
+    "dpi": [
+      499.99899999999997,
+      499.99899999999997
+    ],
+    "csv_schema_preserved": true,
+    "pdf_font_embedded": true
+  },
+  {
+    "figure": "fy3f/fit_diagnostics/CAL_RAD_ch01toch07_FY3F_post_update.png",
+    "pixels": [
+      6052,
+      9058
+    ],
+    "dpi": [
+      499.99899999999997,
+      499.99899999999997
+    ],
+    "csv_schema_preserved": true,
+    "pdf_font_embedded": true
+  }
+]

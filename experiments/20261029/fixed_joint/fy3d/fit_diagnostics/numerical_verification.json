@@ -1,0 +1,6 @@
+{
+  "fits_checked": 49,
+  "coefficients_match_existing_atol": 1e-12,
+  "training_sample_counts_equal": true,
+  "host": "node111"
+}

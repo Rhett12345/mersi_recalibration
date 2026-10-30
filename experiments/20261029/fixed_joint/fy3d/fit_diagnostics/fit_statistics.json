@@ -1,0 +1,492 @@
+[
+  {
+    "block": "2018",
+    "channel": 1,
+    "n": 130388,
+    "r": 0.9988620479325845,
+    "intercept": -5.147207069224656,
+    "slope": 0.026371117031674444,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 11982
+  },
+  {
+    "block": "2018",
+    "channel": 2,
+    "n": 181814,
+    "r": 0.9991358359106944,
+    "intercept": -4.692721641707543,
+    "slope": 0.02585569338588024,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 11128
+  },
+  {
+    "block": "2018",
+    "channel": 3,
+    "n": 253262,
+    "r": 0.9991126576682653,
+    "intercept": -8.978812418636657,
+    "slope": 0.027895265543607186,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 10154
+  },
+  {
+    "block": "2018",
+    "channel": 4,
+    "n": 247502,
+    "r": 0.9974799778972253,
+    "intercept": -3.3317671126877926,
+    "slope": 0.025610691288243267,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2018",
+    "channel": 5,
+    "n": 274075,
+    "r": 0.9994126963535953,
+    "intercept": -3.1825433532329024,
+    "slope": 0.02241767800320811,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 20389
+  },
+  {
+    "block": "2018",
+    "channel": 6,
+    "n": 171012,
+    "r": 0.9992196973288788,
+    "intercept": -1.5718081873234588,
+    "slope": 0.022815982005293754,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 59520
+  },
+  {
+    "block": "2018",
+    "channel": 7,
+    "n": 138571,
+    "r": 0.9965342663694423,
+    "intercept": -2.5686703010807506,
+    "slope": 0.019151451939878324,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 30587
+  },
+  {
+    "block": "2019",
+    "channel": 1,
+    "n": 105661,
+    "r": 0.998626588085823,
+    "intercept": -3.3090953451146774,
+    "slope": 0.02543746670331585,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2019",
+    "channel": 2,
+    "n": 119362,
+    "r": 0.9987650070490884,
+    "intercept": -3.6566590020392127,
+    "slope": 0.02518781271141463,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2019",
+    "channel": 3,
+    "n": 122738,
+    "r": 0.9987196418044341,
+    "intercept": -7.011241683044801,
+    "slope": 0.02692420532137436,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2019",
+    "channel": 4,
+    "n": 128663,
+    "r": 0.9985617351155253,
+    "intercept": -3.1949958798061147,
+    "slope": 0.025862529882916596,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2019",
+    "channel": 5,
+    "n": 131436,
+    "r": 0.9945015177468602,
+    "intercept": -3.224144091368285,
+    "slope": 0.023456478044619457,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2019",
+    "channel": 6,
+    "n": 44050,
+    "r": 0.994723299017761,
+    "intercept": -1.7281549584511247,
+    "slope": 0.023854007021319585,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2019",
+    "channel": 7,
+    "n": 61917,
+    "r": 0.9945430887316323,
+    "intercept": -2.3313965931584892,
+    "slope": 0.018568767579899434,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2020",
+    "channel": 1,
+    "n": 90105,
+    "r": 0.9978914443153688,
+    "intercept": -2.8109528674988127,
+    "slope": 0.025409642243153768,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2020",
+    "channel": 2,
+    "n": 102598,
+    "r": 0.9980449035216968,
+    "intercept": -3.248038133221179,
+    "slope": 0.02498074372481259,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2020",
+    "channel": 3,
+    "n": 104433,
+    "r": 0.9977741285010676,
+    "intercept": -6.595954667349744,
+    "slope": 0.026734061526855996,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2020",
+    "channel": 4,
+    "n": 111433,
+    "r": 0.9972435823739447,
+    "intercept": -3.122348772023816,
+    "slope": 0.026058232086327678,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2020",
+    "channel": 5,
+    "n": 129188,
+    "r": 0.9959893462083745,
+    "intercept": -3.4150049956936774,
+    "slope": 0.024792472570911453,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 4
+  },
+  {
+    "block": "2020",
+    "channel": 6,
+    "n": 36740,
+    "r": 0.99102611346355,
+    "intercept": -2.441284632533222,
+    "slope": 0.02570957659113714,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2020",
+    "channel": 7,
+    "n": 33444,
+    "r": 0.9884053650868767,
+    "intercept": -2.3288337359134132,
+    "slope": 0.01909495981031615,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2021",
+    "channel": 1,
+    "n": 108285,
+    "r": 0.9986236485096338,
+    "intercept": -5.553895934432958,
+    "slope": 0.0273311279382172,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 17222
+  },
+  {
+    "block": "2021",
+    "channel": 2,
+    "n": 131728,
+    "r": 0.9993060711591929,
+    "intercept": -4.158986530949285,
+    "slope": 0.02572719083408693,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 17227
+  },
+  {
+    "block": "2021",
+    "channel": 3,
+    "n": 159168,
+    "r": 0.9993359055589188,
+    "intercept": -8.268270981883752,
+    "slope": 0.02760121557788467,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 17388
+  },
+  {
+    "block": "2021",
+    "channel": 4,
+    "n": 138987,
+    "r": 0.9989019132352996,
+    "intercept": -2.5170271860253877,
+    "slope": 0.025649716742314206,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2021",
+    "channel": 5,
+    "n": 217375,
+    "r": 0.9986766306652725,
+    "intercept": -3.6648459722696387,
+    "slope": 0.025580556449602665,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 1423
+  },
+  {
+    "block": "2021",
+    "channel": 6,
+    "n": 123706,
+    "r": 0.9974273373176517,
+    "intercept": -2.0888619858793263,
+    "slope": 0.026256547395266328,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 16644
+  },
+  {
+    "block": "2021",
+    "channel": 7,
+    "n": 135947,
+    "r": 0.9929009281673375,
+    "intercept": -2.704644284286232,
+    "slope": 0.020249560770575777,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 8132
+  },
+  {
+    "block": "2022",
+    "channel": 1,
+    "n": 116710,
+    "r": 0.9981769008231424,
+    "intercept": -2.862938547617752,
+    "slope": 0.026539373501913713,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2022",
+    "channel": 2,
+    "n": 116537,
+    "r": 0.9979478270485587,
+    "intercept": -3.0316210846862433,
+    "slope": 0.025113766213456786,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2022",
+    "channel": 3,
+    "n": 116646,
+    "r": 0.9975930365056446,
+    "intercept": -6.1064341541494045,
+    "slope": 0.02639638096887251,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2022",
+    "channel": 4,
+    "n": 117077,
+    "r": 0.9970198561591349,
+    "intercept": -2.5460643090231727,
+    "slope": 0.025885944139357044,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2022",
+    "channel": 5,
+    "n": 116831,
+    "r": 0.9965167333291804,
+    "intercept": -3.7691817311471203,
+    "slope": 0.026727802098841926,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2022",
+    "channel": 6,
+    "n": 22272,
+    "r": 0.9873984636116515,
+    "intercept": -3.301695809913909,
+    "slope": 0.028871532670384694,
+    "displayed_points": 22272,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2022",
+    "channel": 7,
+    "n": 31845,
+    "r": 0.9862283590937342,
+    "intercept": -2.643163183817043,
+    "slope": 0.020956811540329728,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2023",
+    "channel": 1,
+    "n": 114215,
+    "r": 0.9992857734393372,
+    "intercept": -3.3406065378414525,
+    "slope": 0.02788627255563212,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2023",
+    "channel": 2,
+    "n": 122070,
+    "r": 0.9994075697997596,
+    "intercept": -3.1625692430261765,
+    "slope": 0.02533406634256306,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2023",
+    "channel": 3,
+    "n": 126474,
+    "r": 0.9992807097811984,
+    "intercept": -6.42843195126467,
+    "slope": 0.02652695680532178,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2023",
+    "channel": 4,
+    "n": 139487,
+    "r": 0.9989318161781149,
+    "intercept": -2.634739511398564,
+    "slope": 0.025870438582482357,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2023",
+    "channel": 5,
+    "n": 130891,
+    "r": 0.9935586935076208,
+    "intercept": -3.813650147044093,
+    "slope": 0.026770572179558597,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2023",
+    "channel": 6,
+    "n": 17371,
+    "r": 0.9851559367373547,
+    "intercept": -3.2976380366696745,
+    "slope": 0.028621833093543683,
+    "displayed_points": 17371,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2023",
+    "channel": 7,
+    "n": 26407,
+    "r": 0.9859171939366493,
+    "intercept": -2.3838980150257285,
+    "slope": 0.02128876031476929,
+    "displayed_points": 26407,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2024",
+    "channel": 1,
+    "n": 191994,
+    "r": 0.9981686153595023,
+    "intercept": -4.069988022942148,
+    "slope": 0.029631342720806236,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2024",
+    "channel": 2,
+    "n": 213255,
+    "r": 0.998279107409939,
+    "intercept": -3.499914944501082,
+    "slope": 0.02594008832375845,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2024",
+    "channel": 3,
+    "n": 223856,
+    "r": 0.9982552145957386,
+    "intercept": -6.281462804103068,
+    "slope": 0.026292359898712758,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2024",
+    "channel": 4,
+    "n": 267367,
+    "r": 0.9978921905816343,
+    "intercept": -2.885928260232415,
+    "slope": 0.025852792999803975,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2024",
+    "channel": 5,
+    "n": 263778,
+    "r": 0.9955237787260673,
+    "intercept": -3.667220520446744,
+    "slope": 0.025868742121776072,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2024",
+    "channel": 6,
+    "n": 53598,
+    "r": 0.990454063999584,
+    "intercept": -2.891931004769539,
+    "slope": 0.027582459721649796,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  },
+  {
+    "block": "2024",
+    "channel": 7,
+    "n": 74398,
+    "r": 0.9847036235015028,
+    "intercept": -2.660110546649692,
+    "slope": 0.0219590686706943,
+    "displayed_points": 30000,
+    "outside_legacy_axes_n": 0
+  }
+]

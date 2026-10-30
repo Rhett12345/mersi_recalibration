@@ -117,6 +117,7 @@ FY-3D 769 组候选中，764 组完成读取和匹配，5 组因输入问题排�
 
 ## 图件与源数据
 
+- 每次拟合保留原来的 4×2 七波段回归图，第八格留空，并输出同名 Channel,Intercept,Slope CSV；见 fy3d/fit_diagnostics/ 和 fy3f/fit_diagnostics/。这些是训练拟合诊断，与独立验证图分别解释。
 - Figure1_FY3D_agreement / Figure1_FY3F_agreement：再定标前后完整验证样本密度散点关系。
 - Figure2_band_effects：两颗卫星的相对 Bias、RMSE 与改善置信区间；并列展示不构成两颗卫星本征性能排名。
 - Figure3_FY3D_residuals / Figure3_FY3F_residuals：残差分布，保留系统误差和长尾证据。
