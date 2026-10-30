@@ -100,40 +100,6 @@ The current repository tree contains coefficient CSVs and the necessary CSV inde
 
    插值、验证和绘图代码位于独立代码仓库。运行方法、依赖和数据要求见 [每日系数流程说明](https://github.com/Rhett12345/re-calibration/blob/main/docs/DAILY_COEFFICIENT_PRODUCT.md)，本轮实验的逐波段误差及局限见 [实验结果说明](https://github.com/Rhett12345/re-calibration/blob/main/docs/DAILY_COEFFICIENT_RESULTS_20261030.md)。全量计算应在计算节点或调度作业中运行。
 
-## 🔬 Current Release and Interpretation | 当前版本与结果解读
-
-截至 2026-10-30，本轮系数集合为：
-
-| Satellite / 卫星 | Actual fitted dates / 真实系数日期 | Daily estimate range / 每日估计范围 | Calendar days / 日历天数 |
-|---|---:|---|---:|
-| FY-3D / MERSI-II | 180（175 天七波段完整，5 天部分波段缺测） | 2018-01-03 — 2025-01-15 | 2,570 |
-| FY-3F / MERSI-III | 45（七波段完整） | 2024-07-04 — 2026-07-12 | 739 |
-
-FY-3D 使用 Aqua MODIS 参考观测，FY-3F 使用 Terra MODIS 参考观测，并分别处理光谱响应差异。本轮涉及 MERSI B1–B7；不同传感器的同编号通道不能据此视为光谱完全相同。
-
-### Coefficient fluctuations | 如何理解系数波动
-
-单日拟合系数本身存在起伏。当前多数波段采用线性插值，因此会保留并传递锚点间的变化，曲线不一定平滑。**系数的明显起伏不能仅凭曲线判定为传感器真实漂移，也不能因为曲线更平滑就认定辐射精度更高。** 截距和斜率应结合考虑，并通过同一批留出匹配样本上的反射率误差评价实际效果。
-
-Single-date fitted coefficients fluctuate, and linear interpolation transmits those changes between anchors. Such variations alone do not establish sensor drift. Intercept and slope should be assessed jointly using radiometric errors on matched validation observations; visual smoothness is not an accuracy metric.
-
-本轮比较了线性、PCHIP、三次样条、三档平滑样条、两种高斯过程、稳健季节回归及 Extra Trees。采用分日期块验证和保守选模规则后，当前完整锚点模型为 FY-3D B1–B6 线性插值、B7 平滑样条，以及 FY-3F B1–B7 线性插值。**这些是当前扩展实验所选方法，不应据此改写原论文的方法描述。**
-
-### Missing values and validation scope | 缺测与验证范围
-
-- FY-3F B5–B7 在 2025-01-22 业务定标参数更新前后分段建模，2025-01-13 至 2025-02-02 的这三个波段保留缺测；不跨更新边界补连。B1–B4 在这些日期仍有估计。
-- 长观测间隔内仍生成支持范围内的每日系数，但在索引中保留间隔与质量标记。缺测日期没有独立观测真值，长间隔区间的可靠性不能由少量留出日期直接保证。
-- 本轮方法开发属于探索性内部验证。模型选择过程中未将外层留出日期用于该折的拟合和内层选模，但研究方案经过本轮探索调整，不能将结果视为完全独立的外部验证。
-- 索引中的系数误差百分位数来自留出观测日期，不能当作每个插值日期的正式置信区间。再定标后与参考传感器的一致性改善，也不等同于已经证明绝对辐射精度或长期稳定性。
-
-## 🗂️ Earlier Release and Code Location | 早期版本与代码去向
-
-早期 README 中的 **`fy3d_mersi/YYYYMM/`** 按月存放 FY-3D 再定标 CSV 与 HDF5 文件，**`GPR_interpolation/`** 提供 `main_control.py`、`data_preprocess.py`、`gaussian_interpolation.py` 和 `result_plot.py`，用于插值与可视化分析。这些历史材料没有丢失：
-
-- [早期月目录数据与原 README](https://github.com/Rhett12345/mersi_recalibration/tree/92355e59484fc96e36c50bdfdf6225c89cfe3a7a) 保留在 Git 历史中，服务器上也已完整归档；当前主分支使用上面说明的卫星分离、真实与插值分离结构。
-- [原 GPR 插值代码及许可证](https://github.com/Rhett12345/re-calibration/tree/main/legacy/results_repository_GPR_interpolation) 保存在配套代码仓库中。早期 `python3 main_control.py` 的用法属于该历史流程；当前流程应使用上方链接中的运行说明。
-- 早期连续系数序列的逐日来源与本轮真实单日拟合文件不能直接混同，因此未将整套旧连续序列标记为 `observed/`。复现早期论文相关材料时，应引用相应历史提交，不能默认当前主分支与论文版本完全相同。
-
 ## 📅 Updates | 更新计划
 
 - 🔄 再定标数据计划在新观测与验证完成后按月整理更新，实际覆盖范围以发布版本及其 CSV 索引为准。
